@@ -1,4 +1,5 @@
 import { MediaItem } from '../types';
+import { WINDOW_SLUGS } from './seoRoutes';
 
 /**
  * Generates or derives a deterministic 3 to 4 digit numeric code for any item.
@@ -31,13 +32,29 @@ export function getNumericCode(item: MediaItem): string {
 }
 
 /**
- * Returns the full shareable and search-friendly URL for any window or item
+ * Returns clean descriptive SEO URL for each item on roohpro.com/ai:
+ * e.g. roohpro.com/ai/#/photo/101 or roohpro.com/ai/#/video/301 or roohpro.com/ai/#/prompt/101
  */
 export function getItemFullUrl(item: MediaItem): string {
   const code = getNumericCode(item);
-  return `${window.location.origin}${window.location.pathname}#/item/${code}`;
+  const winInfo = WINDOW_SLUGS[item.windowId] || WINDOW_SLUGS[1];
+  const origin = typeof window !== 'undefined' && window.location.origin ? window.location.origin : 'https://roohpro.com';
+  const pathname = typeof window !== 'undefined' && window.location.pathname ? window.location.pathname : '/ai';
+  return `${origin}${pathname}#/${winInfo.slug}/${code}`;
+}
+
+/**
+ * Returns canonical clean URL on main domain roohpro.com/ai for search engines
+ */
+export function getItemCanonicalUrl(item: MediaItem): string {
+  const code = getNumericCode(item);
+  const winInfo = WINDOW_SLUGS[item.windowId] || WINDOW_SLUGS[1];
+  return `https://roohpro.com/ai/${winInfo.slug}/${code}`;
 }
 
 export function getWindowFullUrl(windowId: number): string {
-  return `${window.location.origin}${window.location.pathname}#/window/${windowId}`;
+  const winInfo = WINDOW_SLUGS[windowId as 1 | 2 | 3 | 4 | 5 | 6] || WINDOW_SLUGS[1];
+  const origin = typeof window !== 'undefined' && window.location.origin ? window.location.origin : 'https://roohpro.com';
+  const pathname = typeof window !== 'undefined' && window.location.pathname ? window.location.pathname : '/ai';
+  return `${origin}${pathname}#/${winInfo.slug}`;
 }

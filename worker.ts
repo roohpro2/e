@@ -1,6 +1,6 @@
 /**
  * Rooh AI Platform - Cloudflare Worker Entry Point
- * Database (D1), Cache (KV), Storage (R2), and Gemini AI Server
+ * Database (D1), Cache (KV), Storage (R2), Gemini AI Server, SEO Sitemaps & Canonical Domain Redirection
  */
 
 export interface Env {
@@ -41,10 +41,33 @@ function jsonResponse(data: any, status = 200, headers: Record<string, string> =
   });
 }
 
+const WINDOW_SLUG_MAP: Record<number, string> = {
+  1: 'photo',
+  2: '3d-art',
+  3: 'video',
+  4: 'logo',
+  5: 'ads',
+  6: 'vision',
+};
+
 export default {
   async fetch(request: Request, env: Env, ctx: any): Promise<Response> {
     const url = new URL(request.url);
+    const hostname = url.hostname.toLowerCase();
     const path = url.pathname;
+
+    // 0. Automatic 301 Permanent Redirect from pages.dev / workers.dev to official domain roohpro.com/ai
+    // Exclude API, storage, and sitemap endpoints from domain redirects so API calls continue to function seamlessly
+    const isApiOrAsset = path.startsWith('/api') || path.startsWith('/ai/api') || path.endsWith('.xml') || path.endsWith('.txt') || path.endsWith('.json') || path.includes('/assets/');
+    
+    if (!isApiOrAsset && (hostname.includes('.pages.dev') || hostname.includes('.workers.dev'))) {
+      let targetPath = path;
+      if (!targetPath.startsWith('/ai')) {
+        targetPath = `/ai${targetPath === '/' ? '' : targetPath}`;
+      }
+      const targetLocation = `https://roohpro.com${targetPath}${url.search}${url.hash}`;
+      return Response.redirect(targetLocation, 301);
+    }
 
     // Handle Preflight CORS Requests
     if (request.method === 'OPTIONS') {
@@ -175,31 +198,74 @@ export default {
       return jsonResponse({ error: 'KV Cache is not configured' }, 503);
     }
 
-    // 5. Sitemap Dynamic Edge Generation
-    if (path.endsWith('/sitemap.xml') || path.endsWith('/ai/sitemap.xml')) {
-      let dynamicUrls = `<url><loc>https://roohpro.com/ai</loc><priority>1.0</priority></url>`;
+    // 5. Dynamic XML Sitemaps for roohpro.com and roohpro.com/ai
+    if (path.endsWith('/sitemap.xml') || path.endsWith('/ai/sitemap.xml') || path === '/sitemap.xml') {
+      let dynamicUrls = `
+  <url><loc>https://roohpro.com</loc><priority>1.0</priority><changefreq>hourly</changefreq></url>
+  <url><loc>https://roohpro.com/ai</loc><priority>1.0</priority><changefreq>hourly</changefreq></url>
+  <url><loc>https://roohpro.com/ai/photo</loc><priority>0.95</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://roohpro.com/ai/3d-art</loc><priority>0.95</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://roohpro.com/ai/video</loc><priority>0.95</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://roohpro.com/ai/logo</loc><priority>0.90</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://roohpro.com/ai/ads</loc><priority>0.90</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://roohpro.com/ai/vision</loc><priority>0.90</priority><changefreq>daily</changefreq></url>`;
+
       if (d1Db) {
         try {
-          const { results } = await d1Db.prepare('SELECT id, numericCode FROM media_items LIMIT 500').all();
+          const { results } = await d1Db.prepare('SELECT id, numericCode, windowId, title, url FROM media_items LIMIT 500').all();
           if (results && results.length > 0) {
             dynamicUrls += results
-              .map(
-                (item: any) =>
-                  `<url><loc>https://roohpro.com/ai/gallery/${item.numericCode || item.id}</loc><priority>0.8</priority></url>`
-              )
+              .map((item: any) => {
+                const winSlug = WINDOW_SLUG_MAP[item.windowId] || 'photo';
+                const code = item.numericCode || item.id;
+                const itemUrl = `https://roohpro.com/ai/${winSlug}/${code}`;
+                let imgXml = '';
+                if (item.url) {
+                  imgXml = `\n    <image:image><image:loc>${item.url}</image:loc><image:title>${item.title || 'تصميم ذكاء اصطناعي'}</image:title></image:image>`;
+                }
+                return `  <url>\n    <loc>${itemUrl}</loc>\n    <priority>0.85</priority>\n    <changefreq>daily</changefreq>${imgXml}\n  </url>`;
+              })
               .join('\n');
           }
         } catch (_) {}
       }
 
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+<!-- Rooh Pro Main Domain SEO Sitemap Index -->
 ${dynamicUrls}
 </urlset>`;
+
       return new Response(xml, {
         headers: {
           'Content-Type': 'application/xml; charset=utf-8',
           'Cache-Control': 'public, max-age=3600, s-maxage=86400',
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    }
+
+    // Robots.txt
+    if (path.endsWith('/robots.txt') || path === '/robots.txt') {
+      const robots = `# Robots.txt for Rooh Pro & Rooh AI
+User-agent: *
+Allow: /
+Allow: /ai/
+Allow: /ai/photo/
+Allow: /ai/3d-art/
+Allow: /ai/video/
+Allow: /ai/logo/
+Allow: /ai/ads/
+Allow: /ai/vision/
+
+Sitemap: https://roohpro.com/sitemap.xml
+Sitemap: https://roohpro.com/ai/sitemap.xml
+`;
+      return new Response(robots, {
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
           'Access-Control-Allow-Origin': '*',
         },
       });
@@ -230,7 +296,7 @@ ${dynamicUrls}
       }
     }
 
-    // 7. Static Asset Serving Fallback (Pages / Worker Assets)
+    // 7. Static Asset Serving Fallback (Worker Assets)
     if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
       return env.ASSETS.fetch(request);
     }

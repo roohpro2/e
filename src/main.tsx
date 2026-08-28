@@ -7,8 +7,17 @@ import { CloudflareProvider } from './context/CloudflareContext';
 import { AuthProvider } from './context/AuthContext';
 import './index.css';
 
-// Safely catch cross-origin external script errors and unhandled rejections
+// Client-Side Auto Canonical Redirection to roohpro.com/ai
 if (typeof window !== 'undefined') {
+  const currentHost = window.location.hostname.toLowerCase();
+  if (currentHost.includes('pages.dev') || currentHost.includes('workers.dev')) {
+    const currentHash = window.location.hash || '';
+    const targetUrl = `https://roohpro.com/ai${currentHash ? currentHash : ''}`;
+    // Instant smooth redirection preserving page route and item ID
+    window.location.replace(targetUrl);
+  }
+
+  // Safely catch cross-origin external script errors and unhandled rejections
   window.addEventListener('error', (event) => {
     if (event.message === 'Script error.' || !event.filename) {
       // Cross-origin script error from external resources or ad networks
@@ -29,14 +38,13 @@ if (typeof window !== 'undefined') {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
-      <AuthProvider>
-        <AdminConfigProvider>
-          <CloudflareProvider>
+      <AdminConfigProvider>
+        <CloudflareProvider>
+          <AuthProvider>
             <App />
-          </CloudflareProvider>
-        </AdminConfigProvider>
-      </AuthProvider>
+          </AuthProvider>
+        </CloudflareProvider>
+      </AdminConfigProvider>
     </ErrorBoundary>
-  </StrictMode>,
+  </StrictMode>
 );
-

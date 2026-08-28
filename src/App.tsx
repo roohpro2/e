@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { WindowId, MediaItem, AdBanner } from './types';
 import { storage } from './services/storage';
@@ -12,6 +12,7 @@ import { DevControlPanel } from './components/DevControlPanel';
 import { SmartSearchBar } from './components/SmartSearchBar';
 import { InterstitialAdModal } from './components/InterstitialAdModal';
 import { getNumericCode } from './utils/idHelper';
+import { WINDOW_SLUGS, getWindowIdFromSlug } from './utils/seoRoutes';
 import { Sparkles, Layers, ShieldCheck, Code, Eye, ExternalLink, Shield, Bug, Info, FileText } from 'lucide-react';
 import { AuthModal } from './components/auth/AuthModal';
 import { PrivacyPolicyModal } from './components/modals/PrivacyPolicyModal';
@@ -64,7 +65,7 @@ export default function App() {
     return () => clearTimeout(appOpenTimer);
   }, []);
 
-  // Sync with URL Hash for dedicated links to every page and item (with 3-4 digit codes or item IDs)
+  // Sync with URL Hash for dedicated links to every page and item (SEO descriptive URLs)
   useEffect(() => {
     // Initial live data hydration in live / production mode
     if (isLiveMode()) {
@@ -83,37 +84,75 @@ export default function App() {
 
     const handleHashChange = async () => {
       const hash = window.location.hash;
-      if (!hash || hash === '#' || hash === '#/') {
+      const cleanHash = hash.replace(/^#\/?/, '');
+
+      if (!cleanHash || cleanHash === '/' || cleanHash === '') {
         setCurrentView('home');
         setSelectedItem(null);
-      } else if (hash === '#/admin' || hash === '#admin') {
+        return;
+      }
+
+      if (cleanHash === 'admin') {
         setDevPanelOpen(true);
-      } else if (hash === '#/privacy' || hash === '#privacy') {
+        return;
+      }
+      if (cleanHash === 'privacy') {
         setPrivacyModalOpen(true);
-      } else if (hash === '#/report' || hash === '#report') {
+        return;
+      }
+      if (cleanHash === 'report') {
         setReportModalOpen(true);
-      } else if (hash === '#/terms' || hash === '#terms') {
+        return;
+      }
+      if (cleanHash === 'terms') {
         setTermsModalOpen(true);
-      } else if (hash === '#/about' || hash === '#about') {
+        return;
+      }
+      if (cleanHash === 'about') {
         setAboutModalOpen(true);
-      } else if (hash.startsWith('#/window/')) {
-        const winNum = parseInt(hash.replace('#/window/', ''), 10) as WindowId;
+        return;
+      }
+
+      // Check Window Slug routes: #/photo, #/3d-art, #/video, #/logo, #/ads, #/vision or #/window/1
+      const parts = cleanHash.split('/');
+      const firstSegment = parts[0];
+      const secondSegment = parts[1];
+
+      // Window matching
+      const matchedWinId = getWindowIdFromSlug(firstSegment);
+      if (matchedWinId && !secondSegment) {
+        setActiveWindowId(matchedWinId);
+        setCurrentView('window');
+        setSelectedItem(null);
+        return;
+      }
+
+      // Legacy window match: #/window/1
+      if (cleanHash.startsWith('window/')) {
+        const winNum = parseInt(cleanHash.replace('window/', ''), 10) as WindowId;
         if ([1, 2, 3, 4, 5, 6].includes(winNum)) {
           setActiveWindowId(winNum);
           setCurrentView('window');
           setSelectedItem(null);
+          return;
         }
-      } else if (hash.startsWith('#/item/') || hash.startsWith('#item-')) {
-        const itemIdOrCode = hash.replace('#/item/', '').replace('#item-', '');
-        let found = storage.getItemById(itemIdOrCode);
-        if (!found && isLiveMode()) {
-          found = await apiService.fetchItemByCode(itemIdOrCode);
-        }
-        if (found) {
-          setSelectedItem(found);
-          setActiveWindowId(found.windowId);
-          setCurrentView('item');
-        }
+      }
+
+      // Item matching by slug or code: #/photo/101, #/video/301, #/item/101, or #101
+      let itemQuery = secondSegment || firstSegment;
+      if (cleanHash.startsWith('item/')) {
+        itemQuery = cleanHash.replace('item/', '');
+      }
+
+      let found = storage.getItemById(itemQuery);
+      if (!found && isLiveMode()) {
+        found = await apiService.fetchItemByCode(itemQuery);
+      }
+
+      if (found) {
+        setSelectedItem(found);
+        setActiveWindowId(found.windowId);
+        setCurrentView('item');
       }
     };
 
@@ -149,21 +188,23 @@ export default function App() {
   };
 
   const handleSelectWindow = (winId: WindowId) => {
+    const winInfo = WINDOW_SLUGS[winId] || WINDOW_SLUGS[1];
     navigateWithAdCheck(() => {
       setActiveWindowId(winId);
       setCurrentView('window');
       setSelectedItem(null);
-      window.history.replaceState(null, '', `#/window/${winId}`);
-    }, `بوابة رقم ${winId}`);
+      window.location.hash = `#/${winInfo.slug}`;
+    }, winInfo.arabicLabel);
   };
 
   const handleSelectItem = (item: MediaItem) => {
+    const winInfo = WINDOW_SLUGS[item.windowId] || WINDOW_SLUGS[1];
+    const code = item.numericCode || item.id;
     navigateWithAdCheck(() => {
       setSelectedItem(item);
       setActiveWindowId(item.windowId);
       setCurrentView('item');
-      const code = getNumericCode(item);
-      window.history.replaceState(null, '', `#/item/${code}`);
+      window.location.hash = `#/${winInfo.slug}/${code}`;
     }, item.title);
   };
 
@@ -171,41 +212,29 @@ export default function App() {
     navigateWithAdCheck(() => {
       setCurrentView('home');
       setSelectedItem(null);
-      window.history.replaceState(null, '', '#/');
+      window.location.hash = '#/';
     }, 'الصفحة الرئيسية');
   };
 
-  const handleBackToWindow = () => {
-    navigateWithAdCheck(() => {
-      setCurrentView('window');
-      setSelectedItem(null);
-      window.history.replaceState(null, '', `#/window/${activeWindowId}`);
-    }, `بوابة رقم ${activeWindowId}`);
-  };
-
   const handleProceedInterstitialAd = () => {
-    if (interstitialAd.pendingAction) {
-      interstitialAd.pendingAction();
-    }
+    const action = interstitialAd.pendingAction;
     setInterstitialAd((prev) => ({ ...prev, isOpen: false, pendingAction: undefined }));
+    if (action) {
+      action();
+    }
   };
 
   const handleCloseInterstitialAd = () => {
-    if (interstitialAd.pendingAction) {
-      interstitialAd.pendingAction();
-    }
+    const action = interstitialAd.pendingAction;
     setInterstitialAd((prev) => ({ ...prev, isOpen: false, pendingAction: undefined }));
-  };
-
-  const pageTransitionVariants = {
-    initial: { opacity: 0, y: 6 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -6 }
+    if (action) {
+      action();
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col selection:bg-yellow-300 selection:text-black">
-      {/* Header with 5-Click Secret Logo Trigger */}
+    <div className="min-h-screen bg-slate-100 flex flex-col selection:bg-blue-600 selection:text-white" dir="rtl">
+      {/* 3D Master Header with Brand and Home Navigation */}
       <Navbar
         currentView={currentView}
         activeWindowId={activeWindowId}
@@ -214,55 +243,43 @@ export default function App() {
         onOpenDevPanel={() => setDevPanelOpen(true)}
       />
 
-      {/* Main App Container */}
-      <main className="flex-1 mx-auto w-full max-w-7xl px-3 sm:px-6 py-4 sm:py-8">
+      {/* Smart Search Bar on Home and Gallery Views */}
+      {currentView !== 'item' && (
+        <div className="max-w-7xl mx-auto w-full px-3.5 sm:px-8 pt-4">
+          <SmartSearchBar
+            items={items}
+            onSelectItem={handleSelectItem}
+            onSelectWindow={handleSelectWindow}
+          />
+        </div>
+      )}
+
+      {/* Main Dynamic View Controller */}
+      <main className="flex-1 max-w-7xl mx-auto w-full px-3.5 sm:px-8 py-4 sm:py-6">
         <AnimatePresence mode="wait">
-          {/* VIEW 1: 4-Window Home Launcher Grid */}
           {currentView === 'home' && (
             <motion.div
-              key="view-home"
-              variants={pageTransitionVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              className="space-y-6"
+              key="home-grid"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
             >
-              {/* Top Smart Search Box & Router Bar */}
-              <div className="w-full">
-                <SmartSearchBar
-                  items={items}
-                  onSelectItem={handleSelectItem}
-                  onSelectWindow={handleSelectWindow}
-                />
-              </div>
-
-              {/* 4 Windows Grid */}
-              <div>
-                <WindowHomeGrid
-                  onSelectWindow={handleSelectWindow}
-                  items={items}
-                />
-              </div>
+              <WindowHomeGrid
+                onSelectWindow={handleSelectWindow}
+                items={items}
+              />
             </motion.div>
           )}
 
-          {/* VIEW 2: Single Window Gallery Page with Ad Grid */}
           {currentView === 'window' && (
             <motion.div
-              key={`view-window-${activeWindowId}`}
-              variants={pageTransitionVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              className="space-y-6"
+              key={`window-view-${activeWindowId}`}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
             >
-              <SmartSearchBar
-                items={items}
-                onSelectItem={handleSelectItem}
-                onSelectWindow={handleSelectWindow}
-              />
               <WindowGalleryView
                 windowId={activeWindowId}
                 items={items}
@@ -274,20 +291,22 @@ export default function App() {
             </motion.div>
           )}
 
-          {/* VIEW 3: Dedicated Item Detail Page with 350x350 Ads and Copyable Prompt */}
           {currentView === 'item' && selectedItem && (
             <motion.div
-              key={`view-item-${selectedItem.id}`}
-              variants={pageTransitionVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+              key={`item-detail-${selectedItem.id}`}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
             >
               <ItemDetailPage
                 item={selectedItem}
                 ads={ads}
-                onBack={handleBackToWindow}
+                onBack={() => {
+                  const winInfo = WINDOW_SLUGS[selectedItem.windowId] || WINDOW_SLUGS[1];
+                  setCurrentView('window');
+                  window.location.hash = `#/${winInfo.slug}`;
+                }}
                 onSelectWindow={handleSelectWindow}
               />
             </motion.div>
@@ -295,58 +314,47 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* Footer with Dynamic Colored Action Badges and Reserved Bottom Banner Clearance */}
-      <footer className="mt-auto border-t border-slate-200 bg-white pt-6 pb-20 sm:pb-24 text-xs text-slate-500">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-8">
+      {/* Master 3D Footer */}
+      <footer className="w-full mt-auto border-t-2 border-slate-300/80 bg-white/90 backdrop-blur-md py-6 px-4 text-center">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-semibold text-slate-600">
           <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-blue-600 animate-pulse" />
-            <span className="font-black text-slate-900 text-sm tracking-wide">
-              منصة Rooh Pro Ai
-            </span>
+            <span className="h-2 w-2 rounded-full bg-blue-600 inline-block animate-pulse" />
+            <span>بوابة الذكاء الاصطناعي Rooh AI Hub • جميع الحقوق محفوظة {new Date().getFullYear()}</span>
           </div>
 
-          {/* 4 Dynamically Colored Framed Action Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-            {/* 1. Privacy Policy Button (Blue Framed Badge) */}
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs">
             <button
               type="button"
-              id="footer-privacy-btn"
               onClick={() => setPrivacyModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-500/40 bg-blue-50/80 hover:bg-blue-100/90 text-blue-700 font-bold transition-all shadow-xs hover:shadow-blue-500/20 hover:border-blue-500 active:scale-95 cursor-pointer"
-              title="عرض سياسة الخصوصية وأمان البيانات"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-500/40 bg-blue-50/80 hover:bg-blue-100/90 text-blue-800 font-bold transition-all shadow-xs hover:shadow-blue-500/20 hover:border-blue-500 active:scale-95 cursor-pointer"
+              title="سياسة الخصوصية وحماية البيانات"
             >
               <Shield className="w-3.5 h-3.5 text-blue-600" />
               <span>سياسة الخصوصية</span>
             </button>
 
-            {/* 2. Report Bug / Issue Button (Red Framed Badge) */}
             <button
               type="button"
-              id="footer-report-btn"
               onClick={() => setReportModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-500/40 bg-red-50/80 hover:bg-red-100/90 text-red-700 font-bold transition-all shadow-xs hover:shadow-red-500/20 hover:border-red-500 active:scale-95 cursor-pointer"
-              title="الإبلاغ عن مشكلة أو خطأ برمجي"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-500/40 bg-rose-50/80 hover:bg-rose-100/90 text-rose-800 font-bold transition-all shadow-xs hover:shadow-rose-500/20 hover:border-rose-500 active:scale-95 cursor-pointer"
+              title="الإبلاغ عن مشكلة أو خطأ فني"
             >
-              <Bug className="w-3.5 h-3.5 text-red-600" />
-              <span>الإبلاغ عن مشكلة</span>
+              <Bug className="w-3.5 h-3.5 text-rose-600" />
+              <span>إبلاغ عن مشكلة</span>
             </button>
 
-            {/* 3. Terms of Service Button (Yellow/Amber Framed Badge) */}
             <button
               type="button"
-              id="footer-terms-btn"
               onClick={() => setTermsModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-500/40 bg-amber-50/80 hover:bg-amber-100/90 text-amber-800 font-bold transition-all shadow-xs hover:shadow-amber-500/20 hover:border-amber-500 active:scale-95 cursor-pointer"
-              title="شروط الاستخدام والترخيص"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-500/40 bg-amber-50/80 hover:bg-amber-100/90 text-amber-900 font-bold transition-all shadow-xs hover:shadow-amber-500/20 hover:border-amber-500 active:scale-95 cursor-pointer"
+              title="شروط الاستخدام والخدمة"
             >
-              <FileText className="w-3.5 h-3.5 text-amber-600" />
+              <FileText className="w-3.5 h-3.5 text-amber-700" />
               <span>شروط الاستخدام</span>
             </button>
 
-            {/* 4. About Platform Button (Emerald/Green Framed Badge) */}
             <button
               type="button"
-              id="footer-about-btn"
               onClick={() => setAboutModalOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-500/40 bg-emerald-50/80 hover:bg-emerald-100/90 text-emerald-800 font-bold transition-all shadow-xs hover:shadow-emerald-500/20 hover:border-emerald-500 active:scale-95 cursor-pointer"
               title="عن منصة Rooh والبوابات الست"
@@ -357,14 +365,12 @@ export default function App() {
           </div>
         </div>
 
-        {/* Reserved Bottom Banner Clearance Area (Min 50px guaranteed clearance for ad networks) */}
+        {/* Reserved Bottom Banner Clearance Area */}
         <div
           id="bottom-ad-banner-slot"
           className="mx-auto mt-4 max-w-4xl min-h-[50px] flex items-center justify-center text-center px-4"
           aria-hidden="true"
-        >
-          {/* Reserved slot for dynamically injected bottom banner ads without overlapping footer UI */}
-        </div>
+        />
       </footer>
 
       {/* 4 Distinct Independent Colored Modals */}
@@ -395,10 +401,10 @@ export default function App() {
         onDataChanged={refreshData}
       />
 
-      {/* Global Authentication Modal (Triggered on Guest limit exhaustion or Account Menu) */}
+      {/* Global Authentication Modal */}
       <AuthModal />
 
-      {/* App Open Ad & Page Navigation Interstitial Ad Modal (Min 60s cooldown & smart Monetag/Adsterra rotation) */}
+      {/* App Open Ad & Page Navigation Interstitial Ad Modal */}
       <InterstitialAdModal
         isOpen={interstitialAd.isOpen}
         type={interstitialAd.type}
