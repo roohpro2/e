@@ -1,4 +1,4 @@
-name: Deploy Rooh AI to Cloudflare
+name: Deploy Rooh AI to Cloudflare Workers
 
 on:
   push:
@@ -14,7 +14,7 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    name: Build & Deploy to Cloudflare
+    name: Build & Deploy to Cloudflare Workers
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -38,8 +38,8 @@ jobs:
         run: npx wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_TOKEN || secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID || 'fa73541af4fcdd947ab78c12fe990a34' }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Success Notification
         run: |
-          echo "🎉 Build & Deployment workflow completed for project: aia"
+          echo "🎉 Build & Deployment workflow completed for project: e"
