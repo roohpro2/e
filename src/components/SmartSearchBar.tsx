@@ -4,7 +4,6 @@ import { MediaItem, WindowId } from '../types';
 import { getNumericCode } from '../utils/idHelper';
 import { useAuth } from '../context/AuthContext';
 import { UserProfileModal } from './auth/UserProfileModal';
-import { TopNotificationAd } from './TopNotificationAd';
 
 interface SmartSearchBarProps {
   items: MediaItem[];
@@ -148,6 +147,7 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
                   e.preventDefault();
                   e.stopPropagation();
                   setIsHelpModalOpen(true);
+                  window.dispatchEvent(new Event('trigger-top-notification-ad'));
                 }}
                 title="دليل البحث والاستدعاء البرمجي"
                 className="relative flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-gradient-to-tr from-red-600 via-red-500 to-rose-500 text-white font-black text-xs sm:text-sm shadow-[0_0_10px_rgba(239,68,68,0.7)] border-2 border-white/80 hover:scale-110 hover:shadow-[0_0_15px_rgba(239,68,68,0.9)] active:scale-90 transition-all duration-200 cursor-pointer overflow-hidden select-none animate-pulse hover:animate-none"
