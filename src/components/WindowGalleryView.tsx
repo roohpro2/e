@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { MediaItem, WindowId, AdBanner } from '../types';
 import { WINDOWS_INFO } from '../data/defaultData';
+import { adManager } from '../services/adManager';
 import { AdDisplay } from './AdDisplay';
 import { ImageVisionAnalyzer } from './ImageVisionAnalyzer';
 import { Portal3DRibbon } from './Portal3DRibbon';
@@ -70,18 +71,38 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
 
   const handleCopyCode = (e: React.MouseEvent, item: MediaItem) => {
     e.stopPropagation();
-    const code = getNumericCode(item);
-    navigator.clipboard.writeText(code);
-    setCopiedCodeId(item.id);
-    setTimeout(() => setCopiedCodeId(null), 2000);
+    adManager.handleUserActionWithAd(
+      () => {
+        const code = getNumericCode(item);
+        navigator.clipboard.writeText(code);
+        setCopiedCodeId(item.id);
+        setTimeout(() => setCopiedCodeId(null), 2000);
+      },
+      () => {
+        const code = getNumericCode(item);
+        navigator.clipboard.writeText(code);
+        setCopiedCodeId(item.id);
+        setTimeout(() => setCopiedCodeId(null), 2000);
+      }
+    );
   };
 
   const handleCopyLink = (e: React.MouseEvent, item: MediaItem) => {
     e.stopPropagation();
-    const url = getItemFullUrl(item);
-    navigator.clipboard.writeText(url);
-    setCopiedLinkId(item.id);
-    setTimeout(() => setCopiedLinkId(null), 2000);
+    adManager.handleUserActionWithAd(
+      () => {
+        const url = getItemFullUrl(item);
+        navigator.clipboard.writeText(url);
+        setCopiedLinkId(item.id);
+        setTimeout(() => setCopiedLinkId(null), 2000);
+      },
+      () => {
+        const url = getItemFullUrl(item);
+        navigator.clipboard.writeText(url);
+        setCopiedLinkId(item.id);
+        setTimeout(() => setCopiedLinkId(null), 2000);
+      }
+    );
   };
 
   /**
@@ -95,7 +116,7 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
     if (!isAdsActive) {
       return (
         <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {windowItems.map((item, index) => renderItemCard(item, `desktop-clean-item-${item.id}-${index}`))}
+          {windowItems.map((item, index) => renderItemCard(item, `desktop-clean-item-${item.id}-${index}`, index))}
         </div>
       );
     }
@@ -138,7 +159,7 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
           }
 
           const item = slot.item;
-          return renderItemCard(item, `desktop-item-${item.id}-${index}`);
+          return renderItemCard(item, `desktop-item-${item.id}-${index}`, index);
         })}
       </div>
     );
@@ -156,8 +177,8 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
       <div className="sm:hidden flex flex-col space-y-6 w-full">
         {windowItems.map((item, index) => (
           <React.Fragment key={`mobile-group-${item.id}-${index}`}>
-            {/* Full-width Square Item Window Card */}
-            {renderItemCard(item, `mobile-item-${item.id}`)}
+            {/* Full-width Square Item Window Card with dynamic neon frame */}
+            {renderItemCard(item, `mobile-item-${item.id}`, index)}
             
             {/* Full-width Square Ad (only if ads enabled globally) */}
             {isAdsActive && (
@@ -171,22 +192,25 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
     );
   };
 
-  const renderItemCard = (item: MediaItem, key: string) => {
+  const renderItemCard = (item: MediaItem, key: string, cardIndex: number = 0) => {
     const isVideo = item.type === 'youtube_video' || item.type === 'shorts_video';
     const isCodeCopied = copiedCodeId === item.id;
     const isLinkCopied = copiedLinkId === item.id;
+
+    // Joyful dynamic neon pulse frame matching the portals
+    const neonClass = `neon-card-${((windowId + cardIndex - 1) % 6) + 1}`;
 
     return (
       <div
         key={key}
         id={`card-${item.id}`}
         onClick={() => onSelectItem(item)}
-        className="group relative cursor-pointer overflow-hidden rounded-2xl border-2 border-slate-200 bg-white p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 aspect-square w-full flex flex-col justify-between"
+        className={`group relative cursor-pointer overflow-hidden rounded-2xl bg-white p-3.5 sm:p-4 shadow-md transition-all duration-300 aspect-square w-full flex flex-col justify-between ${neonClass}`}
       >
         {/* Card Top Bar: Title & Action Icons (📋, 🔗) */}
         <div className="flex items-center justify-between z-10 border-b border-slate-100 pb-2">
           <div className="flex items-center gap-1.5 min-w-0 pr-1">
-            <span className="h-2.5 w-2.5 rounded-full bg-blue-600 shrink-0 inline-block shadow-xs" />
+            <span className="h-2.5 w-2.5 rounded-full bg-blue-600 shrink-0 inline-block shadow-xs animate-pulse" />
             <h4 className="font-black text-xs sm:text-sm text-slate-900 group-hover:text-blue-600 transition-colors truncate">
               {item.title}
             </h4>
@@ -219,13 +243,13 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
           </div>
         </div>
 
-        {/* Center Thumbnail Media (Takes full center space inside the square window) */}
-        <div className="relative my-2 flex-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-100 group-hover:border-slate-300 transition-colors shadow-inner">
+        {/* Center Thumbnail Media with 12px rounded borders (Takes full center space inside the square window) */}
+        <div className="relative my-2 flex-1 w-full overflow-hidden rounded-[12px] border border-slate-200 bg-slate-100 group-hover:border-slate-300 transition-colors shadow-inner">
           <img
             src={item.url}
             alt={item.title}
             referrerPolicy="no-referrer"
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="h-full w-full object-cover rounded-[12px] transition-transform duration-300 group-hover:scale-105"
           />
 
           {/* Video Play Indicator */}
@@ -275,34 +299,44 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
   return (
     <div className="w-full space-y-6">
       {/* Top Window Navigation Bar (Light with Tri-Color stripe) */}
-      <div className="relative overflow-hidden rounded-2xl border-2 border-slate-200 bg-white p-4 sm:p-5 shadow-sm">
+      <div className="relative overflow-hidden rounded-2xl border-2 border-slate-200 bg-white p-3.5 sm:p-5 shadow-sm">
         <div className="absolute top-0 left-0 right-0 tricolor-bar">
           <span />
           <span />
           <span />
         </div>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-1">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 pt-1.5 sm:pt-1">
+          <div className="flex items-start sm:items-center gap-3 w-full sm:w-auto min-w-0">
             <button
               onClick={onBack}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white transition-colors shadow-2xs"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-2 border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white transition-colors shadow-2xs mt-0.5 sm:mt-0"
               title="الرجوع للنوافذ الرئيسية"
             >
               <ArrowRight className="h-4 w-4" />
             </button>
-            <div>
-              <div className="flex items-center gap-2.5">
-                <PortalNeonBadge
-                  windowId={currentWindow.id}
-                  isActive={true}
-                  size="md"
-                />
-                <h2 className="text-lg sm:text-xl font-black text-slate-900">
+            <div className="flex-1 min-w-0">
+              {/* Responsive Layout: Portal Badge above text on mobile for natural text flow; inline side-by-side on desktop */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2.5">
+                <div className="shrink-0 flex items-center">
+                  <PortalNeonBadge
+                    windowId={currentWindow.id}
+                    isActive={true}
+                    size="sm"
+                    className="sm:hidden"
+                  />
+                  <PortalNeonBadge
+                    windowId={currentWindow.id}
+                    isActive={true}
+                    size="md"
+                    className="hidden sm:inline-flex"
+                  />
+                </div>
+                <h2 className="text-sm sm:text-xl font-black text-slate-900 leading-snug sm:leading-tight">
                   {currentWindow.arabicName}
                 </h2>
               </div>
-              <p className="text-xs text-slate-600 mt-0.5">
+              <p className="text-xs text-slate-600 mt-1 sm:mt-0.5 leading-relaxed">
                 {currentWindow.fullDesc}
               </p>
             </div>

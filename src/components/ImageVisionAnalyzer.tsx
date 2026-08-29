@@ -3,6 +3,7 @@ import { Upload, Wand2, Sparkles, Copy, Check, ScanEye, RefreshCw, AlertCircle, 
 import { AnalysisData } from '../types';
 import { analyzeImageWithAI } from '../services/aiService';
 import { storage } from '../services/storage';
+import { adManager } from '../services/adManager';
 import { AspectRatioSelectorBar } from './AspectRatioSelectorBar';
 import { useQuotaManager } from '../hooks/useQuotaManager';
 import { QuotaDisplayBanner } from './QuotaDisplayBanner';
@@ -54,6 +55,21 @@ export const ImageVisionAnalyzer: React.FC<ImageVisionAnalyzerProps> = ({ onProm
     reader.readAsDataURL(file);
   };
 
+  const executeAnalysis = async () => {
+    setIsAnalyzing(true);
+    try {
+      const data = await analyzeImageWithAI(selectedImage!, userCustomNote);
+      setAnalysisResult(data);
+      if (onPromptGenerated) {
+        onPromptGenerated(data.extractedPrompt);
+      }
+    } catch (e) {
+      console.error('Analysis failed:', e);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const handleAnalyze = async () => {
     if (!selectedImage) return;
 
@@ -68,25 +84,29 @@ export const ImageVisionAnalyzer: React.FC<ImageVisionAnalyzerProps> = ({ onProm
       return;
     }
 
-    setIsAnalyzing(true);
-
-    try {
-      const data = await analyzeImageWithAI(selectedImage, userCustomNote);
-      setAnalysisResult(data);
-      if (onPromptGenerated) {
-        onPromptGenerated(data.extractedPrompt);
+    adManager.handleUserActionWithAd(
+      () => {
+        executeAnalysis();
+      },
+      () => {
+        executeAnalysis();
       }
-    } catch (e) {
-      console.error('Analysis failed:', e);
-    } finally {
-      setIsAnalyzing(false);
-    }
+    );
   };
 
   const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedPrompt(true);
-    setTimeout(() => setCopiedPrompt(false), 2000);
+    adManager.handleUserActionWithAd(
+      () => {
+        navigator.clipboard.writeText(text);
+        setCopiedPrompt(true);
+        setTimeout(() => setCopiedPrompt(false), 2000);
+      },
+      () => {
+        navigator.clipboard.writeText(text);
+        setCopiedPrompt(true);
+        setTimeout(() => setCopiedPrompt(false), 2000);
+      }
+    );
   };
 
   return (

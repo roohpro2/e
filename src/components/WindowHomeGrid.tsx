@@ -150,16 +150,16 @@ export const WindowHomeGrid: React.FC<WindowHomeGridProps> = ({
         </div>
 
         {/* Center Square Thumbnail */}
-        <div className="relative my-2 flex-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-100 group-hover:border-slate-300 transition-colors shadow-2xs">
+        <div className="relative my-2 flex-1 w-full overflow-hidden rounded-[12px] border border-slate-200 bg-slate-100 group-hover:border-slate-300 transition-colors shadow-2xs">
           {topItem ? (
             <img
               src={topItem.url}
               alt={win.name}
               referrerPolicy="no-referrer"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="h-full w-full object-cover rounded-[12px] transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-400">
+            <div className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-400 rounded-[12px]">
               <ImageIcon className="h-8 w-8" />
             </div>
           )}
@@ -228,16 +228,16 @@ export const WindowHomeGrid: React.FC<WindowHomeGridProps> = ({
                 </div>
 
                 {/* Center Square Thumbnail (Taking full center area) */}
-                <div className="relative my-2.5 flex-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-100 group-hover:border-slate-300 transition-colors shadow-inner">
+                <div className="relative my-2.5 flex-1 w-full overflow-hidden rounded-[12px] border border-slate-200 bg-slate-100 group-hover:border-slate-300 transition-colors shadow-inner">
                   {topItem ? (
                     <img
                       src={topItem.url}
                       alt={win.name}
                       referrerPolicy="no-referrer"
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="h-full w-full object-cover rounded-[12px] transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-400">
+                    <div className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-400 rounded-[12px]">
                       <ImageIcon className="h-10 w-10" />
                     </div>
                   )}

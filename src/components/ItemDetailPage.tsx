@@ -24,7 +24,6 @@ import {
 import { MediaItem, AdBanner } from '../types';
 import { AdDisplay } from './AdDisplay';
 import { AspectRatioSelectorBar } from './AspectRatioSelectorBar';
-import { RewardedAdModal } from './RewardedAdModal';
 import { PortalNeonBadge } from './PortalNeonBadge';
 import { storage } from '../services/storage';
 import { adManager } from '../services/adManager';
@@ -53,9 +52,6 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
   const [copiedNegative, setCopiedNegative] = useState(false);
   const [isResetToast, setIsResetToast] = useState(false);
 
-  // Rewarded Ad Modal State
-  const [isRewardedAdOpen, setIsRewardedAdOpen] = useState(false);
-  const [activeAdNetwork, setActiveAdNetwork] = useState<'monetag' | 'adsterra'>('monetag');
   const [copyRestrictionWarning, setCopyRestrictionWarning] = useState<string | null>(null);
 
   const numericCode = getNumericCode(item);
@@ -84,23 +80,12 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
     setTimeout(() => setCopiedPrompt(false), 2500);
   };
 
-  // Safe handler triggered by "نسخ البرومبت" button
+  // Safe handler triggered by "نسخ البرومبت" button using 60s cooldown rule with Monetag
   const handleCopyPrompt = () => {
-    const check = adManager.shouldShowRewardedAd(devSettings.adNetworks);
-
-    if (check.shouldShow) {
-      setActiveAdNetwork(check.activeNetwork);
-      setIsRewardedAdOpen(true);
-    } else {
-      executeCopyPromptToClipboard(false);
-    }
-  };
-
-  // Called when user finishes rewarded ad countdown
-  const handleRewardGranted = () => {
-    adManager.rewardUserBonusAttempts(2);
-    setIsRewardedAdOpen(false);
-    executeCopyPromptToClipboard(true);
+    adManager.handleUserActionWithAd(
+      () => executeCopyPromptToClipboard(false),
+      () => executeCopyPromptToClipboard(true)
+    );
   };
 
   // Prevent manual selection / highlight copy attempts on screen
@@ -112,15 +97,19 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
 
   const handleCopyNegativePrompt = () => {
     if (!editableNegative) return;
-    navigator.clipboard.writeText(editableNegative);
-    setCopiedNegative(true);
-    setTimeout(() => setCopiedNegative(false), 2000);
+    adManager.handleUserActionWithAd(() => {
+      navigator.clipboard.writeText(editableNegative);
+      setCopiedNegative(true);
+      setTimeout(() => setCopiedNegative(false), 2000);
+    });
   };
 
   const handleCopyCode = () => {
-    navigator.clipboard.writeText(numericCode);
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2500);
+    adManager.handleUserActionWithAd(() => {
+      navigator.clipboard.writeText(numericCode);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2500);
+    });
   };
 
   const handleShareLink = () => {
@@ -158,22 +147,24 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
           <span />
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1">
+          <div className="flex items-start sm:items-center gap-3 w-full sm:w-auto min-w-0">
             <button
               onClick={onBack}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white transition-colors shadow-2xs"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-2 border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white transition-colors shadow-2xs mt-0.5 sm:mt-0"
               title="الرجوع للقائمة"
             >
               <ArrowRight className="h-4 w-4" />
             </button>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <PortalNeonBadge
-                  windowId={item.windowId}
-                  size="sm"
-                />
-                <h2 className="text-base sm:text-lg font-black text-slate-900 line-clamp-1">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2">
+                <div className="shrink-0">
+                  <PortalNeonBadge
+                    windowId={item.windowId}
+                    size="sm"
+                  />
+                </div>
+                <h2 className="text-sm sm:text-lg font-black text-slate-900 line-clamp-1 sm:line-clamp-2">
                   {item.title}
                 </h2>
               </div>
@@ -480,7 +471,6 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
 
         {/* Bottom Section: Integrated Ad 2 (350x350) below the prompt */}
         <div className="flex flex-col items-center justify-center pt-2">
-          <span className="text-xs font-bold text-slate-600 mb-2">إعلان مدمج أسفل البرومبت (350×350)</span>
           <AdDisplay size="350x350" slotIndex={2} className="w-full max-w-[350px]" />
         </div>
       </div>
@@ -489,9 +479,9 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
       {/* 2. MOBILE VIEW (Shown on mobile, Hidden on sm+) */}
       {/* ========================================================= */}
       <div className="sm:hidden space-y-6 w-full">
-        {/* 1. Full-width Square Media Window Card */}
-        <div className="overflow-hidden rounded-2xl border-2 border-slate-200 bg-white p-3.5 shadow-sm w-full aspect-square flex flex-col justify-between">
-          <div className="relative overflow-hidden rounded-xl border-2 border-slate-200 bg-slate-100 flex-1 w-full shadow-inner">
+        {/* 1. Full-width Square Media Window Card with joyful neon border */}
+        <div className={`overflow-hidden rounded-2xl bg-white p-3.5 shadow-md w-full aspect-square flex flex-col justify-between neon-card-${((item.windowId - 1) % 6) + 1}`}>
+          <div className="relative overflow-hidden rounded-[12px] border border-slate-200 bg-slate-100 flex-1 w-full shadow-inner">
             {/* Top Floating Action Icon (📋 Code only, link is in top header) */}
             <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/75 backdrop-blur-md p-1.5 rounded-xl border border-white/20 shadow-lg z-10">
               <button
@@ -512,7 +502,7 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
                 title={item.title}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
-                className="h-full w-full rounded-lg border-0"
+                className="h-full w-full rounded-[12px] border-0"
               />
             ) : isShorts && item.videoUrl?.endsWith('.mp4') ? (
               <video
@@ -522,14 +512,14 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
                 loop
                 muted
                 playsInline
-                className="h-full w-full object-cover rounded-lg"
+                className="h-full w-full object-cover rounded-[12px]"
               />
             ) : (
               <img
                 src={item.url}
                 alt={item.title}
                 referrerPolicy="no-referrer"
-                className="h-full w-full object-cover rounded-lg"
+                className="h-full w-full object-cover rounded-[12px]"
               />
             )}
           </div>
@@ -654,23 +644,10 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
         {/* 4. Integrated Ad 2 (350x350) below the prompt (only if ads enabled) */}
         {devSettings.adNetworks?.globalAdsEnabled !== false && (
           <div className="w-full pt-1">
-            <span className="text-[11px] font-bold text-slate-500 mb-2 block text-center">
-              إعلان مدمج 350×350 أسفل البرومبت
-            </span>
             <AdDisplay size="350x350" slotIndex={2} className="w-full max-w-[350px] mx-auto" />
           </div>
         )}
       </div>
-
-      {/* Rewarded Ad Modal Triggered on Copy Button */}
-      {devSettings.adNetworks && (
-        <RewardedAdModal
-          isOpen={isRewardedAdOpen}
-          onRewardGranted={handleRewardGranted}
-          onClose={() => setIsRewardedAdOpen(false)}
-          adSettings={devSettings.adNetworks}
-        />
-      )}
     </div>
   );
 };

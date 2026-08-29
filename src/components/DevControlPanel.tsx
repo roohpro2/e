@@ -987,6 +987,63 @@ export const DevControlPanel: React.FC<DevControlPanelProps> = ({
                     </div>
                   </div>
 
+                  {/* 350x350 Native Inline CPM Ad Network Configuration */}
+                  <div className="rounded-2xl bg-slate-950 p-5 border border-amber-500/30 space-y-4 shadow-lg">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                      <div>
+                        <h5 className="text-sm font-bold text-amber-300 flex items-center gap-2">
+                          <span className="flex h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse" />
+                          <span>🎯 إعلانات مدمجة 350×350 (Native CPM Banner Ad Network)</span>
+                        </h5>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          خاصة بالإعلانات المدمجة المستقلة داخل المعرض وتحت البرومبت (تعمل على الهاتف والكمبيوتر بحجم 350×350، وليس لها علاقة بالمكافأة أو فتح التطبيق أو الإعلانات البينية).
+                        </p>
+                      </div>
+                      <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-mono font-bold shrink-0">
+                        حجم 350×350 نشط
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-slate-300">
+                        كود الإعلان المدمج (Script & Container ID):
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={devSettings.customAdCode350 || ''}
+                        onChange={(e) => {
+                          const updated = {
+                            ...devSettings,
+                            customAdCode350: e.target.value,
+                            enableCustomAdCode: true
+                          };
+                          setDevSettings(updated);
+                        }}
+                        placeholder={`<script async="async" data-cfasync="false" src="https://pl31048719.profitableratecpmnetwork.com/078e1b87ef40127fba8f90077a1773b8/invoke.js"></script>\n<div id="container-078e1b87ef40127fba8f90077a1773b8"></div>`}
+                        className="w-full rounded-xl border border-slate-800 bg-slate-900 p-3 font-mono text-xs text-emerald-400 focus:border-amber-400 focus:outline-none"
+                        dir="ltr"
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
+                      <div className="flex items-center gap-2 text-xs text-slate-400">
+                        <span className="font-mono text-amber-400">container-078e1b87ef40127fba8f90077a1773b8</span>
+                        <span>• invoke.js</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          storage.saveDevSettings(devSettings);
+                          showToast('💾 تم حفظ كود الإعلانات المدمجة 350×350 بنجاح');
+                        }}
+                        className="flex items-center gap-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 px-4 py-2 text-xs font-black text-white transition-all shadow-md active:scale-95"
+                      >
+                        <Save className="w-3.5 h-3.5" />
+                        <span>حفظ كود الإعلان 350×350</span>
+                      </button>
+                    </div>
+                  </div>
+
                   {/* List of custom sponsored ads */}
                   <div className="space-y-3">
                     <h5 className="text-xs font-bold text-slate-300">قائمة الإعلانات المدمجة المسجلة (350×350):</h5>

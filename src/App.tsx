@@ -5,12 +5,12 @@ import { storage } from './services/storage';
 import { apiService, isLiveMode } from './services/apiService';
 import { adManager } from './services/adManager';
 import { Navbar } from './components/Navbar';
+import { TopNotificationAd } from './components/TopNotificationAd';
 import { WindowHomeGrid } from './components/WindowHomeGrid';
 import { WindowGalleryView } from './components/WindowGalleryView';
 import { ItemDetailPage } from './components/ItemDetailPage';
 import { DevControlPanel } from './components/DevControlPanel';
 import { SmartSearchBar } from './components/SmartSearchBar';
-import { InterstitialAdModal } from './components/InterstitialAdModal';
 import { getNumericCode } from './utils/idHelper';
 import { WINDOW_SLUGS, getWindowIdFromSlug } from './utils/seoRoutes';
 import { Sparkles, Layers, ShieldCheck, Code, Eye, ExternalLink, Shield, Bug, Info, FileText } from 'lucide-react';
@@ -28,41 +28,23 @@ export default function App() {
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [devPanelOpen, setDevPanelOpen] = useState(false);
 
-  // App Open Ad & Page Navigation Interstitial Ad State
-  const [interstitialAd, setInterstitialAd] = useState<{
-    isOpen: boolean;
-    type: 'app_open' | 'navigation';
-    network: 'monetag' | 'adsterra';
-    destinationTitle?: string;
-    pendingAction?: () => void;
-  }>({
-    isOpen: false,
-    type: 'app_open',
-    network: 'monetag'
-  });
-
   // 4 Dedicated Colored Footer Modals State
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [termsModalOpen, setTermsModalOpen] = useState(false);
   const [aboutModalOpen, setAboutModalOpen] = useState(false);
 
-  // App Open Ad Trigger on App Launch (with 60-second cooldown check)
+  // App Launch: Preload 10 Ads and Images into memory/phone cache & trigger Monetag Vignette / App Open
   useEffect(() => {
-    const devSettings = storage.getDevSettings();
-    const appOpenTimer = setTimeout(() => {
-      const check = adManager.shouldShowAppOpenAd(devSettings.adNetworks);
-      if (check.shouldShow) {
-        setInterstitialAd({
-          isOpen: true,
-          type: 'app_open',
-          network: check.activeNetwork,
-          pendingAction: undefined
-        });
-      }
-    }, 700);
+    // Immediate preloading of 10 ad images and 10 ads for ultra-fast instant display
+    adManager.preloadAdsAndImages();
 
-    return () => clearTimeout(appOpenTimer);
+    // Trigger Monetag Vignette on app launch (guarded by the 60s cooldown rule)
+    const launchTimer = setTimeout(() => {
+      adManager.showMonetagAd();
+    }, 1200);
+
+    return () => clearTimeout(launchTimer);
   }, []);
 
   // Sync with URL Hash for dedicated links to every page and item (SEO descriptive URLs)
@@ -158,7 +140,19 @@ export default function App() {
 
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    
+    // Listen for realtime settings and ads changes from DevControlPanel or storage
+    const handleSettingsUpdated = () => {
+      refreshData();
+    };
+    window.addEventListener('app-settings-changed', handleSettingsUpdated);
+    window.addEventListener('app-ads-changed', handleSettingsUpdated);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('app-settings-changed', handleSettingsUpdated);
+      window.removeEventListener('app-ads-changed', handleSettingsUpdated);
+    };
   }, []);
 
   const refreshData = () => {
@@ -170,66 +164,30 @@ export default function App() {
     }
   };
 
-  const navigateWithAdCheck = (action: () => void, destinationTitle: string) => {
-    const devSettings = storage.getDevSettings();
-    const check = adManager.shouldShowNavigationAd(devSettings.adNetworks);
-
-    if (check.shouldShow) {
-      setInterstitialAd({
-        isOpen: true,
-        type: 'navigation',
-        network: check.activeNetwork,
-        destinationTitle,
-        pendingAction: action
-      });
-    } else {
-      action();
-    }
-  };
-
   const handleSelectWindow = (winId: WindowId) => {
     const winInfo = WINDOW_SLUGS[winId] || WINDOW_SLUGS[1];
-    navigateWithAdCheck(() => {
-      setActiveWindowId(winId);
-      setCurrentView('window');
-      setSelectedItem(null);
-      window.location.hash = `#/${winInfo.slug}`;
-    }, winInfo.arabicLabel);
+    setActiveWindowId(winId);
+    setCurrentView('window');
+    setSelectedItem(null);
+    window.location.hash = `#/${winInfo.slug}`;
+    adManager.showMonetagAd();
   };
 
   const handleSelectItem = (item: MediaItem) => {
     const winInfo = WINDOW_SLUGS[item.windowId] || WINDOW_SLUGS[1];
     const code = item.numericCode || item.id;
-    navigateWithAdCheck(() => {
-      setSelectedItem(item);
-      setActiveWindowId(item.windowId);
-      setCurrentView('item');
-      window.location.hash = `#/${winInfo.slug}/${code}`;
-    }, item.title);
+    setSelectedItem(item);
+    setActiveWindowId(item.windowId);
+    setCurrentView('item');
+    window.location.hash = `#/${winInfo.slug}/${code}`;
+    adManager.showMonetagAd();
   };
 
   const handleGoHome = () => {
-    navigateWithAdCheck(() => {
-      setCurrentView('home');
-      setSelectedItem(null);
-      window.location.hash = '#/';
-    }, 'الصفحة الرئيسية');
-  };
-
-  const handleProceedInterstitialAd = () => {
-    const action = interstitialAd.pendingAction;
-    setInterstitialAd((prev) => ({ ...prev, isOpen: false, pendingAction: undefined }));
-    if (action) {
-      action();
-    }
-  };
-
-  const handleCloseInterstitialAd = () => {
-    const action = interstitialAd.pendingAction;
-    setInterstitialAd((prev) => ({ ...prev, isOpen: false, pendingAction: undefined }));
-    if (action) {
-      action();
-    }
+    setCurrentView('home');
+    setSelectedItem(null);
+    window.location.hash = '#/';
+    adManager.showMonetagAd();
   };
 
   return (
@@ -242,6 +200,9 @@ export default function App() {
         onSelectWindow={handleSelectWindow}
         onOpenDevPanel={() => setDevPanelOpen(true)}
       />
+
+      {/* Top Center Notification Ad Banner (Safe Isolated CPM Network) */}
+      <TopNotificationAd />
 
       {/* Smart Search Bar on Home and Gallery Views */}
       {currentView !== 'item' && (
@@ -403,17 +364,6 @@ export default function App() {
 
       {/* Global Authentication Modal */}
       <AuthModal />
-
-      {/* App Open Ad & Page Navigation Interstitial Ad Modal */}
-      <InterstitialAdModal
-        isOpen={interstitialAd.isOpen}
-        type={interstitialAd.type}
-        network={interstitialAd.network}
-        destinationTitle={interstitialAd.destinationTitle}
-        adSettings={storage.getDevSettings().adNetworks}
-        onProceed={handleProceedInterstitialAd}
-        onClose={handleCloseInterstitialAd}
-      />
     </div>
   );
 }

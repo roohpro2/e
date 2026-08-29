@@ -235,6 +235,9 @@ export const storage = {
   saveAds(ads: AdBanner[]) {
     try {
       localStorage.setItem(STORAGE_KEYS.ADS, JSON.stringify(ads));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('app-ads-changed', { detail: ads }));
+      }
     } catch (e) {
       console.error('Error saving ads to localStorage:', e);
     }
@@ -278,6 +281,9 @@ export const storage = {
   saveDevSettings(settings: DevSettings) {
     try {
       localStorage.setItem(STORAGE_KEYS.DEV_SETTINGS, JSON.stringify(settings));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('app-settings-changed', { detail: settings }));
+      }
     } catch (e) {
       console.error('Error saving dev settings to localStorage:', e);
     }

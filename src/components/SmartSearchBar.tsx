@@ -4,6 +4,7 @@ import { MediaItem, WindowId } from '../types';
 import { getNumericCode } from '../utils/idHelper';
 import { useAuth } from '../context/AuthContext';
 import { UserProfileModal } from './auth/UserProfileModal';
+import { TopNotificationAd } from './TopNotificationAd';
 
 interface SmartSearchBarProps {
   items: MediaItem[];
