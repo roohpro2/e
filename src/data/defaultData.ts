@@ -856,9 +856,11 @@ export const DEFAULT_AI_BRAIN_JSON = {
 };
 
 export const INITIAL_DEV_SETTINGS: DevSettings = {
+  isRealMode: true,
   groqApiKey: '',
-  groqModel: 'llama-3.2-90b-vision-preview',
+  groqModel: 'llama-3.3-70b-versatile',
   geminiApiKey: '',
+  huggingFaceApiKey: '',
   aiBrainJson: JSON.stringify(DEFAULT_AI_BRAIN_JSON, null, 2),
   customAdCode350: `<script async="async" data-cfasync="false" src="https://pl31048719.profitableratecpmnetwork.com/078e1b87ef40127fba8f90077a1773b8/invoke.js"></script>\n<div id="container-078e1b87ef40127fba8f90077a1773b8"></div>`,
   customAdCodeBanner: '',

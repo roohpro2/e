@@ -59,6 +59,23 @@ export const userCreationsService = {
   // 1. User Gemini API Key & Token Usage Tracker
   // ==========================================
 
+  getUserSessionId(): string {
+    const currentUser = firebaseService.getCurrentUser();
+    if (currentUser && currentUser.uid) {
+      return currentUser.uid;
+    }
+    try {
+      let anonId = localStorage.getItem('rooh_anon_uid_v1');
+      if (!anonId) {
+        anonId = `guest-usr-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
+        localStorage.setItem('rooh_anon_uid_v1', anonId);
+      }
+      return anonId;
+    } catch {
+      return 'guest-usr-session';
+    }
+  },
+
   getUserGeminiApiKey(): string | null {
     try {
       const key = localStorage.getItem(STORAGE_KEYS.USER_GEMINI_KEY);

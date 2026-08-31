@@ -93,9 +93,11 @@ export interface AdNetworkSettings {
 }
 
 export interface DevSettings {
+  isRealMode?: boolean; // Full Real/Live Production Mode vs Sandbox/Simulation
   groqApiKey: string;
   groqModel: string;
   geminiApiKey: string;
+  huggingFaceApiKey?: string;
   aiBrainJson: string;
   customAdCode350: string;
   customAdCodeBanner: string;

@@ -1,0 +1,107 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. دالة التحقق من المطورين (تشمل جميع إيميلات المطور المعتمدة)
+    function isDeveloper() {
+      return request.auth != null && (
+        request.auth.token.email == 'rooh10dodo@gmail.com' ||
+        request.auth.token.email == 'roohpro1@gmail.com' ||
+        request.auth.token.email == 'roohpro2@gmail.com'
+      );
+    }
+
+    // دالة مساعدة للتحقق من أن المستخدم يمتلك المستند
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // 2. إدارة حسابات المستخدمين وتسجيل الإيميلات
+    match /users/{userId} {
+      allow read, write: if isDeveloper() || isOwner(userId);
+    }
+
+    // 3. مفاتيح جيميناي الخاصة بالمستخدمين (حتى يضيف المستخدم مفتاحه بأمان)
+    // كل مستخدم يصل لمفتاحه فقط، والمطور يصل للجميع
+    match /user_api_keys/{userId} {
+      allow read, write: if isDeveloper() || isOwner(userId);
+    }
+
+    match /user_keys_vault/{userId} {
+      allow read, write: if isDeveloper() || isOwner(userId);
+    }
+
+    // 4. مفاتيح الذكاء الاصطناعي العامة وإعدادات الإدارة الخاصة بالتطبيق (للمطور فقط)
+    match /ai_keys/{keyId} {
+      allow read, write: if isDeveloper();
+    }
+
+    match /admin_config/{configId} {
+      allow read, write: if isDeveloper();
+    }
+
+    // 5. صور وفيديوهات الذكاء الاصطناعي وروابط R2 (الأرشفة)
+    match /generated_images/{imageId} {
+      allow read: if true; // السماح للجميع برؤية الأعمال المنتجة
+      // المستخدم يمكنه الحفظ لنفسه فقط، والمطور يمكنه إدارة الكل
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isDeveloper() || (request.auth != null && resource.data.uid == request.auth.uid);
+    }
+
+    // 6. البيانات والأرشيف (حفظ جميع الروابط التي أنشأها التطبيق)
+    match /ai_generated_data/{dataId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isDeveloper() || (request.auth != null && resource.data.uid == request.auth.uid);
+    }
+
+    // 7. أوامر الذكاء الاصطناعي (حفظ البرومبتات)
+    match /ai_commands/{commandId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isDeveloper() || (request.auth != null && resource.data.uid == request.auth.uid);
+    }
+
+    // 8. رسائل وسجل الإشعارات
+    match /notification_messages/{messageId} {
+      allow read: if true;
+      allow write: if isDeveloper();
+    }
+    match /notifications_log/{logId} {
+      allow read: if isDeveloper();
+      allow create: if request.auth != null;
+    }
+
+    // 9. إعدادات التطبيق
+    match /app_settings/{settingId} {
+      allow read: if true;
+      allow write: if isDeveloper();
+    }
+
+    // 10. ذاكرة التخزين المؤقت للبحث
+    match /search_cache/{cacheId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // 11. التحليلات والإحصائيات والآراء وسجلات النظام
+    match /analytics/{id} {
+      allow read, update, delete: if isDeveloper();
+      allow create: if request.auth != null;
+    }
+    match /feedback/{feedbackId} {
+      allow read, update, delete: if isDeveloper();
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+    }
+    match /logs/{logId} {
+      allow read, update, delete: if isDeveloper();
+      allow create: if request.auth != null;
+    }
+
+    // 12. صلاحيات شاملة للمطور على أي مسار إضافي (Fallback)
+    match /{document=**} {
+      allow read, write: if isDeveloper();
+    }
+  }
+}

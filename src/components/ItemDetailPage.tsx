@@ -19,12 +19,14 @@ import {
   Edit3,
   Lock,
   Share2,
-  AlertCircle
+  AlertCircle,
+  Zap
 } from 'lucide-react';
 import { MediaItem, AdBanner } from '../types';
 import { AdDisplay } from './AdDisplay';
 import { AspectRatioSelectorBar } from './AspectRatioSelectorBar';
 import { PortalNeonBadge } from './PortalNeonBadge';
+import { PromptMutatorModal } from './PromptMutatorModal';
 import { storage } from '../services/storage';
 import { adManager } from '../services/adManager';
 import { getNumericCode, getItemFullUrl } from '../utils/idHelper';
@@ -51,6 +53,7 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedNegative, setCopiedNegative] = useState(false);
   const [isResetToast, setIsResetToast] = useState(false);
+  const [isMutatorOpen, setIsMutatorOpen] = useState(false);
 
   const [copyRestrictionWarning, setCopyRestrictionWarning] = useState<string | null>(null);
 
@@ -313,23 +316,33 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {/* Reset to Original Button if modified */}
               {isModified && (
                 <button
                   type="button"
                   onClick={handleResetPrompt}
-                  className="flex items-center gap-1.5 rounded-xl border-2 border-slate-300 bg-slate-100 hover:bg-slate-200 px-3.5 py-2 text-xs font-bold text-slate-800 transition-all active:scale-95 shadow-2xs"
+                  className="flex items-center gap-1.5 rounded-xl border-2 border-slate-300 bg-slate-100 hover:bg-slate-200 px-3.5 py-2 text-xs font-bold text-slate-800 transition-all active:scale-95 shadow-2xs cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5 text-slate-700" />
                   <span>استعادة الأصلي</span>
                 </button>
               )}
 
+              {/* Prompt Mutator & Expansion Button */}
+              <button
+                type="button"
+                onClick={() => setIsMutatorOpen(true)}
+                className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 px-4 py-2.5 text-xs sm:text-sm font-black text-white transition-all shadow-md active:scale-95 border-2 border-amber-300 cursor-pointer"
+              >
+                <Zap className="w-4 h-4 text-yellow-100" />
+                <span>⚡ تنويع وتوسيع البرومبت (Mutator)</span>
+              </button>
+
               {/* Copy Prompt Button with High Impact Visual */}
               <button
                 onClick={handleCopyPrompt}
-                className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 px-5 py-2.5 text-xs sm:text-sm font-black text-white transition-all shadow-md active:scale-95 border-2 border-yellow-400"
+                className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 px-5 py-2.5 text-xs sm:text-sm font-black text-white transition-all shadow-md active:scale-95 border-2 border-yellow-400 cursor-pointer"
               >
                 {copiedPrompt ? (
                   <>
@@ -647,6 +660,14 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
             <AdDisplay size="350x350" slotIndex={2} className="w-full max-w-[350px] mx-auto" />
           </div>
         )}
+
+        {/* Prompt Mutator & Expansion Modal */}
+        <PromptMutatorModal
+          isOpen={isMutatorOpen}
+          onClose={() => setIsMutatorOpen(false)}
+          initialPrompt={editablePrompt}
+          initialWindowId={item.windowId}
+        />
       </div>
     </div>
   );

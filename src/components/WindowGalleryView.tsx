@@ -15,7 +15,8 @@ import {
   Eye,
   Hash,
   Link as LinkIcon,
-  Share2
+  Share2,
+  Zap
 } from 'lucide-react';
 import { MediaItem, WindowId, AdBanner } from '../types';
 import { WINDOWS_INFO } from '../data/defaultData';
@@ -24,8 +25,15 @@ import { AdDisplay } from './AdDisplay';
 import { ImageVisionAnalyzer } from './ImageVisionAnalyzer';
 import { Portal3DRibbon } from './Portal3DRibbon';
 import { PortalNeonBadge } from './PortalNeonBadge';
+import { PromptMutatorModal } from './PromptMutatorModal';
 import { storage } from '../services/storage';
 import { getNumericCode, getItemFullUrl } from '../utils/idHelper';
+import { Portal1PromptStudio } from './portals/Portal1PromptStudio';
+import { Portal2ImageStudio } from './portals/Portal2ImageStudio';
+import { Portal3VideoStudio } from './portals/Portal3VideoStudio';
+import { Portal4VoicePages } from './portals/Portal4VoicePages';
+import { Portal5GamesEconomy } from './portals/Portal5GamesEconomy';
+import { Portal6AuthDevAdmin } from './portals/Portal6AuthDevAdmin';
 
 interface WindowGalleryViewProps {
   windowId: WindowId;
@@ -46,6 +54,7 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
 }) => {
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
+  const [isMutatorOpen, setIsMutatorOpen] = useState(false);
 
   const currentWindow = WINDOWS_INFO.find((w) => w.id === windowId) || WINDOWS_INFO[0];
   const windowItems = items.filter((item) => item.windowId === windowId);
@@ -355,6 +364,17 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
               </p>
             </div>
           </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <button
+              type="button"
+              onClick={() => setIsMutatorOpen(true)}
+              className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white px-3.5 py-2 text-xs font-black shadow-md border border-yellow-400 active:scale-95 transition-all cursor-pointer"
+            >
+              <Zap className="w-4 h-4 text-yellow-300 animate-pulse" />
+              <span>⚡ تنويع وتوسيع البرومبت (Mutator)</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -363,6 +383,16 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
         activeWindowId={windowId}
         onSelectWindow={onSelectWindow}
       />
+
+      {/* DEDICATED PORTAL INTERACTIVE WORKSPACE (Portals 1-6) */}
+      <div className="mb-8">
+        {windowId === 1 && <Portal1PromptStudio />}
+        {windowId === 2 && <Portal2ImageStudio />}
+        {windowId === 3 && <Portal3VideoStudio />}
+        {windowId === 4 && <Portal4VoicePages />}
+        {windowId === 5 && <Portal5GamesEconomy />}
+        {windowId === 6 && <Portal6AuthDevAdmin />}
+      </div>
 
       {/* SPECIAL FEATURE FOR WINDOW 6 & 3: AI Reverse Vision & Prompt Analyzer */}
       {(windowId === 6 || windowId === 3) && (
@@ -389,6 +419,14 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
 
       {/* MOBILE VIEW: Item followed by Page-width Integrated Ad */}
       {renderMobileFlow()}
+
+      {/* Prompt Mutator & Multi-Variant Generator Modal */}
+      <PromptMutatorModal
+        isOpen={isMutatorOpen}
+        onClose={() => setIsMutatorOpen(false)}
+        initialWindowId={windowId}
+        initialPrompt={windowItems[0]?.prompt || ''}
+      />
     </div>
   );
 };

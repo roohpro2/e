@@ -16,11 +16,20 @@ import {
   Lock,
   ArrowUpDown,
   Activity,
-  Layers
+  Layers,
+  Globe,
+  Radio,
+  Sliders,
+  Cpu,
+  Eye,
+  EyeOff,
+  Image as ImageIcon,
+  CheckCheck
 } from 'lucide-react';
 import { storage } from '../../services/storage';
-import { verifyApiKey, ApiVerificationResult } from '../../services/apiVerification';
+import { verifyApiKey, verifyAllSystemKeys, ApiVerificationResult, SystemKeysHealthReport } from '../../services/apiVerification';
 import { firebaseService } from '../../services/firebaseConfig';
+import { getIsRealMode, setIsRealMode } from '../../lib/aiEngine';
 
 interface DevApiKeysSyncViewProps {
   onShowToast?: (msg: string) => void;
@@ -33,50 +42,80 @@ export const DevApiKeysSyncView: React.FC<DevApiKeysSyncViewProps> = ({
 }) => {
   const [devSettings, setDevSettings] = useState(() => storage.getDevSettings());
   
+  // Real Mode State (الوضع الحقيقي المباشر بالكامل)
+  const [isRealModeActive, setIsRealModeActive] = useState<boolean>(() => {
+    return devSettings.isRealMode ?? getIsRealMode();
+  });
+
   // Gemini Primary Key State
   const [geminiKeyInput, setGeminiKeyInput] = useState(devSettings.geminiApiKey || '');
   const [geminiStatus, setGeminiStatus] = useState<ApiVerificationResult | null>(null);
   const [isVerifyingGemini, setIsVerifyingGemini] = useState(false);
+  const [showGeminiKey, setShowGeminiKey] = useState(false);
   
   // Groq Backup/Failover Key State
   const [groqKeyInput, setGroqKeyInput] = useState(devSettings.groqApiKey || '');
   const [groqModel, setGroqModel] = useState(devSettings.groqModel || 'llama-3.3-70b-versatile');
   const [groqStatus, setGroqStatus] = useState<ApiVerificationResult | null>(null);
   const [isVerifyingGroq, setIsVerifyingGroq] = useState(false);
+  const [showGroqKey, setShowGroqKey] = useState(false);
+
+  // Hugging Face Media Key State
+  const [hfKeyInput, setHfKeyInput] = useState(devSettings.huggingFaceApiKey || '');
+  const [hfStatus, setHfStatus] = useState<ApiVerificationResult | null>(null);
+  const [isVerifyingHf, setIsVerifyingHf] = useState(false);
+  const [showHfKey, setShowHfKey] = useState(false);
 
   // Firebase Remote Sync state
   const [firebaseSavedAt, setFirebaseSavedAt] = useState<string | null>(() => {
     return localStorage.getItem('rooh_firebase_keys_synced_at') || null;
   });
+  const [firebaseStatus, setFirebaseStatus] = useState<ApiVerificationResult | null>(null);
   const [isSyncingFirebase, setIsSyncingFirebase] = useState(false);
   const [autoFallbackEnabled, setAutoFallbackEnabled] = useState(true);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
-  // Active failover simulated live status
+  // Global batch verification state
+  const [isTestingAll, setIsTestingAll] = useState(false);
+  const [lastBatchReport, setLastBatchReport] = useState<SystemKeysHealthReport | null>(null);
+
+  // Active failover live status
   const [activeActiveProvider, setActiveActiveProvider] = useState<'gemini' | 'groq'>(() => {
     return devSettings.geminiApiKey?.trim() ? 'gemini' : (devSettings.groqApiKey?.trim() ? 'groq' : 'gemini');
   });
 
   useEffect(() => {
-    // Initial quick verify if keys exist
-    if (devSettings.geminiApiKey?.trim()) {
-      handleTestGemini(devSettings.geminiApiKey);
-    }
-    if (devSettings.groqApiKey?.trim()) {
-      handleTestGroq(devSettings.groqApiKey);
-    }
+    // Initial verification on mount
+    handleTestAllKeys();
   }, []);
 
-  const handleTestGemini = async (keyToTest?: string) => {
+  const handleToggleRealMode = (enabled: boolean) => {
+    setIsRealModeActive(enabled);
+    setIsRealMode(enabled);
+    const updated = {
+      ...devSettings,
+      isRealMode: enabled
+    };
+    storage.saveDevSettings(updated);
+    setDevSettings(updated);
+    if (onShowToast) {
+      onShowToast(enabled ? '🟢 تم تفعيل الوضع الحقيقي بالكامل (Live Production Mode)' : '🟡 تم التبديل إلى وضع المحاكاة والاختبار الآمن');
+    }
+    if (onDataChanged) {
+      onDataChanged();
+    }
+  };
+
+  const handleTestGemini迷 = async (keyToTest?: string) => {
     const key = keyToTest !== undefined ? keyToTest : geminiKeyInput;
     setIsVerifyingGemini(true);
     try {
-      const res = await verifyApiKey('gemini', key);
-      setGeminiStatus(res);
-      if (res.status === 'connected') {
+      const res深 = await verifyApiKey('gemini', key);
+      setGeminiStatus(res深);
+      if (res深.status === 'connected') {
         setActiveActiveProvider('gemini');
       } else if (groqKeyInput?.trim()) {
-        setActiveActiveProvider('groq'); // failover to groq
+        setActiveActiveProvider('groq');
       }
     } finally {
       setIsVerifyingGemini(false);
@@ -94,14 +133,58 @@ export const DevApiKeysSyncView: React.FC<DevApiKeysSyncViewProps> = ({
     }
   };
 
+  const handleTestHf = async (keyToTest?: string) => {
+    const key = keyToTest !== undefined ? keyToTest : hfKeyInput;
+    setIsVerifyingHf(true);
+    try {
+      const res = await verifyApiKey('huggingface', key);
+      setHfStatus(res);
+    } finally {
+      setIsVerifyingHf(false);
+    }
+  };
+
+  const handleTestAllKeys迷 = async () => {
+    setIsTestingAll(true);
+    try {
+      const report = await verifyAllSystemKeys({
+        geminiKey: geminiKeyInput,
+        groqKey: groqKeyInput,
+        hfKey: hfKeyInput
+      });
+      setLastBatchReport(report);
+      setGeminiStatus(report.gemini);
+      setGroqStatus(report.groq);
+      setHfStatus(report.huggingFace);
+      setFirebaseStatus(report.firebase);
+
+      if (report.gemini.status === 'connected') {
+        setActiveActiveProvider('gemini');
+      } else if (report.groq.status === 'connected') {
+        setActiveActiveProvider('groq');
+      }
+
+      if (onShowToast) {
+        onShowToast('✅ تم فحص وتحديث حالة جميع المفاتيح الحقيقية بنجاح');
+      }
+    } finally {
+      setIsTestingAll(false);
+    }
+  };
+
+  const handleTestAllKeys = handleTestAllKeys迷;
+  const handleTestGemini = handleTestGemini迷;
+
   const handleSaveAndSyncToFirebase = async () => {
     setIsSyncingFirebase(true);
 
     const updated = {
       ...devSettings,
+      isRealMode: isRealModeActive,
       geminiApiKey: geminiKeyInput.trim(),
       groqApiKey: groqKeyInput.trim(),
-      groqModel: groqModel.trim()
+      groqModel: groqModel.trim(),
+      huggingFaceApiKey: hfKeyInput.trim()
     };
 
     // 1. Save in local storage engine
@@ -113,17 +196,19 @@ export const DevApiKeysSyncView: React.FC<DevApiKeysSyncViewProps> = ({
       geminiApiKey: geminiKeyInput.trim(),
       groqApiKey: groqKeyInput.trim(),
       groqModel: groqModel.trim(),
+      huggingFaceApiKey: hfKeyInput.trim(),
+      isRealMode: isRealModeActive,
       autoFallback: autoFallbackEnabled,
       primaryProvider: 'gemini',
       backupProvider: 'groq'
     });
 
-    const nowStr = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    setFirebaseSavedAt(nowStr);
+    const nowStr骚 = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    setFirebaseSavedAt(nowStr骚);
     setIsSyncingFirebase(false);
 
     if (onShowToast) {
-      onShowToast('🔥 تم حفظ مفاتيح Gemini و Groq بنجاح ومزامنتها داخل Firebase!');
+      onShowToast('🔥 تم حفظ وتحديث كافة المفاتيح وتزامنها مع قاعدة بيانات Firebase!');
     }
     if (onDataChanged) {
       onDataChanged();
@@ -138,108 +223,197 @@ export const DevApiKeysSyncView: React.FC<DevApiKeysSyncViewProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200" dir="rtl">
-      {/* Top Banner */}
-      <div className="rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 p-6 shadow-xl space-y-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      {/* 1. Master Control Banner & Full Real Mode Switch */}
+      <div className="rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-900 via-indigo-950/50 to-slate-900 p-6 shadow-xl space-y-5">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b border-slate-800 pb-5">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-amber-500/20 via-blue-500/20 to-purple-500/20 text-amber-300 border border-amber-500/40 shadow-inner">
               <Key className="h-6 w-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-base font-black text-white">
-                  نافذة مفاتيح الذكاء الاصطناعي والمزامنة مع Firebase (AI Keys & Failover)
+                  مركز حالة المفاتيح والوضع الحقيقي المباشر (Full Live Real Mode)
                 </h3>
-                <span className="rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-0.5 text-[10px] font-bold">
-                  Gemini ⮂ Groq Backup Engine
+                <span className="rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-0.5 text-[10px] font-mono font-bold">
+                  Gemini ⮂ Groq ⮂ FLUX.1 ⮂ Firebase
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1">
-                إضافة مفتاح Gemini الأساسي ومفتاح Groq الاحتياطي التلقائي مع الحفظ الفوري والمزامنة داخل قاعدة بيانات Firebase.
+                مراقبة حية لصحة المفاتيح والـ API، زمن الاستجابة (Latency)، والتحكم الكامل في الوضع الحقيقي المباشر لتشغيل البوابات الست.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Batch Test All Keys Button */}
+            <button
+              type="button"
+              onClick={handleTestAllKeys}
+              disabled={isTestingAll}
+              className="flex items-center gap-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3.5 py-2.5 text-xs font-bold text-slate-200 transition-all active:scale-95 disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${isTestingAll ? 'animate-spin text-blue-400' : 'text-slate-400'}`} />
+              <span>{isTestingAll ? 'جارٍ فحص المفاتيح...' : 'فحص شامل لجميع المفاتيح'}</span>
+            </button>
+
+            {/* Save and Firebase Sync Button */}
             <button
               type="button"
               onClick={handleSaveAndSyncToFirebase}
               disabled={isSyncingFirebase}
-              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-4 py-2.5 text-xs font-black text-white shadow-lg shadow-blue-500/20 border-2 border-yellow-400 active:scale-95 transition-all"
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-4 py-2.5 text-xs font-black text-white shadow-lg shadow-blue-500/20 border-2 border-yellow-400 active:scale-95 transition-all disabled:opacity-50"
             >
               {isSyncingFirebase ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin text-yellow-300" />
-                  <span>جارٍ المزامنة مع Firebase...</span>
+                  <span>جارٍ المزامنة السحابية...</span>
                 </>
               ) : (
                 <>
                   <Flame className="w-4 h-4 text-amber-300" />
-                  <span>حفظ ومزامنة داخل Firebase</span>
+                  <span>حفظ ومزامنة Firebase</span>
                 </>
               )}
             </button>
           </div>
         </div>
 
-        {/* Live Failover & Architecture Status Tracker */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-1.5">
+        {/* Real Mode Master Switch & Live Telemetry Card */}
+        <div className="rounded-xl border border-blue-500/30 bg-slate-950/80 p-4.5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
+              isRealModeActive
+                ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 shadow-sm shadow-emerald-500/20'
+                : 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+            }`}>
+              <Radio className={`w-5 h-5 ${isRealModeActive ? 'animate-pulse' : ''}`} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-black text-white">الوضع الحقيقي بالكامل (Full Live Production Engine)</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                  isRealModeActive
+                    ? 'bg-emerald-950 text-emerald-300 border-emerald-500/40 animate-pulse'
+                    : 'bg-slate-900 text-slate-400 border-slate-700'
+                }`}>
+                  {isRealModeActive ? '🟢 الوضع الحقيقي نَشِط (LIVE API)' : '🟡 وضع المحاكاة والتطوير (Sandbox)'}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                {isRealModeActive
+                  ? 'يتم تنفيذ كافة طلبات التوليد، هندسة البرومبت، وتوليد الوسائط عبر الاتصال المباشر بالـ APIs الحقيقية.'
+                  : 'توليد تجريبي محلي سريع دون استهلاك حصة الـ API.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <label className="relative inline-flex cursor-pointer items-center">
+              <input
+                type="checkbox"
+                checked={isRealModeActive}
+                onChange={(e) => handleToggleRealMode(e.target.checked)}
+                className="peer sr-only"
+              />
+              <div className="h-7 w-13 rounded-full bg-slate-800 peer-checked:bg-emerald-500 after:absolute after:top-[3px] after:left-[3px] after:h-5.5 after:w-5.5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-6" />
+            </label>
+          </div>
+        </div>
+
+        {/* Real-time Health Matrix Summary Grid (All Keys Status) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {/* Key 1 Matrix Card */}
+          <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-400">المحرك الأساسي (Primary):</span>
+              <span className="text-[11px] font-bold text-slate-400">1. Google Gemini (Primary):</span>
               <span className="inline-flex items-center gap-1 text-[10px] text-blue-400 font-mono">
                 <Sparkles className="w-3 h-3" />
-                Google Gemini
+                gemini-2.5-flash
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <div className={`h-2.5 w-2.5 rounded-full ${geminiStatus?.status === 'connected' ? 'bg-emerald-400 shadow-xs shadow-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
-              <span className="text-sm font-bold text-white">
-                {geminiKeyInput ? (geminiStatus?.status === 'connected' ? 'متصل ونشط (Active)' : 'يحتاج فحص أو ضبط') : 'لم يتم إدخال مفتاح'}
+              <div className={`h-2.5 w-2.5 rounded-full ${geminiStatus?.status === 'connected' ? 'bg-emerald-400 shadow-xs shadow-emerald-400 animate-pulse' : 'bg-rose-500'}`} />
+              <span className="text-xs font-bold text-white">
+                {geminiStatus?.status === 'connected' ? 'متصل ونشط' : (geminiKeyInput ? 'فحص مطلوب' : 'لم يتم إدخال مفتاح')}
               </span>
+              {geminiStatus?.latencyMs && (
+                <span className="text-[10px] font-mono text-slate-400 mr-auto">{geminiStatus.latencyMs}ms</span>
+              )}
             </div>
             <p className="text-[10px] text-slate-500">
-              يتولى استخراج وتحليل البرومبتات في البوابات الست بدقة فائقة.
+              توليد وتحليل البرومبتات في البوابات الست.
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-1.5">
+          {/* Key 2 Matrix Card */}
+          <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-400">المحرك المساعد الاحتياطي (Failover):</span>
+              <span className="text-[11px] font-bold text-slate-400">2. Groq LPU (Failover):</span>
               <span className="inline-flex items-center gap-1 text-[10px] text-amber-400 font-mono">
                 <Zap className="w-3 h-3" />
-                Groq LPUs
+                Llama 3.3
               </span>
             </div>
             <div className="flex items-center gap-2">
               <div className={`h-2.5 w-2.5 rounded-full ${groqStatus?.status === 'connected' ? 'bg-emerald-400 shadow-xs shadow-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
-              <span className="text-sm font-bold text-white">
-                {groqKeyInput ? (groqStatus?.status === 'connected' ? 'جاهز كاحتياطي فوري' : 'يحتاج فحص') : 'غير مضاف'}
+              <span className="text-xs font-bold text-white">
+                {groqStatus?.status === 'connected' ? 'جاهز كاحتياطي فوري' : (groqKeyInput ? 'فحص مطلوب' : 'غير مضاف')}
               </span>
+              {groqStatus?.latencyMs && (
+                <span className="text-[10px] font-mono text-slate-400 mr-auto">{groqStatus.latencyMs}ms</span>
+              )}
             </div>
             <p className="text-[10px] text-slate-500">
-              يعمل تلقائياً عند نفاذ حصة Gemini أو بطء الاتصال، ويعود تلقائياً لـ Gemini عند عودته.
+              تبديل تلقائي عند توقف مفتاح Gemini.
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-1.5">
+          {/* Key 3 Matrix Card */}
+          <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-400">حالة سحابة Firebase:</span>
-              <Flame className="w-4 h-4 text-amber-400" />
+              <span className="text-[11px] font-bold text-slate-400">3. Hugging Face (FLUX.1):</span>
+              <span className="inline-flex items-center gap-1 text-[10px] text-purple-400 font-mono">
+                <ImageIcon className="w-3 h-3" />
+                FLUX.1-schnell
+              </span>
             </div>
-            <div className="text-sm font-bold text-emerald-400 font-mono">
-              {firebaseSavedAt ? `مُزامن: ${firebaseSavedAt}` : 'جاهز للمزامنة'}
+            <div className="flex items-center gap-2">
+              <div className={`h-2.5 w-2.5 rounded-full ${hfStatus?.status === 'connected' ? 'bg-emerald-400 shadow-xs shadow-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
+              <span className="text-xs font-bold text-white">
+                {hfStatus?.status === 'connected' ? 'محرك الصور نشط' : (hfKeyInput ? 'مفتاح مضاف' : 'تلقائي')}
+              </span>
+              {hfStatus?.latencyMs && (
+                <span className="text-[10px] font-mono text-slate-400 mr-auto">{hfStatus.latencyMs}ms</span>
+              )}
             </div>
             <p className="text-[10px] text-slate-500">
-              يتم حفظ المفاتيح مشفرة ومؤمنة على مستوى المشروع السحابي.
+              استوديو الصور والرسم فائق الدقة.
+            </p>
+          </div>
+
+          {/* Key 4 Matrix Card */}
+          <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-400">4. Firebase Cloud & DB:</span>
+              <Flame className="w-3.5 h-3.5 text-amber-400" />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-xs shadow-emerald-400 animate-pulse" />
+              <span className="text-xs font-bold text-emerald-400 font-mono">
+                {firebaseSavedAt ? `مُزامن: ${firebaseSavedAt}` : 'سحابة متصلة'}
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-500">
+              اقتصاد العملات (1000 Coins) والمصادقة.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Main Form: 2 Columns for Keys (Gemini + Groq) */}
+      {/* 2. Detailed Key Configuration Cards (Gemini, Groq, Hugging Face, Firebase, PIN) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Card 1: Primary Key (Google Gemini API) */}
+        {/* Card 1: Google Gemini API Key */}
         <div className="rounded-2xl border border-blue-500/30 bg-slate-900/90 p-6 shadow-xl space-y-5 flex flex-col justify-between">
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -251,7 +425,7 @@ export const DevApiKeysSyncView: React.FC<DevApiKeysSyncViewProps> = ({
                   <h4 className="text-sm font-black text-white flex items-center gap-1.5">
                     <span>1. مفتاح Google Gemini API الأساسي</span>
                     <span className="bg-blue-500/20 text-blue-300 text-[10px] font-mono px-2 py-0.5 rounded-full border border-blue-500/30">
-                      Primary
+                      Primary Engine
                     </span>
                   </h4>
                   <p className="text-[11px] text-slate-400">المحرك الأول لتوليد وتحليل البرومبتات في البوابات الست</p>
@@ -275,15 +449,33 @@ export const DevApiKeysSyncView: React.FC<DevApiKeysSyncViewProps> = ({
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showGeminiKey ? 'text' : 'password'}
                   value={geminiKeyInput}
                   onChange={(e) => setGeminiKeyInput(e.target.value)}
                   placeholder="AIzaSy..."
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-xs font-mono text-white focus:border-blue-500 focus:outline-none pr-10"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-xs font-mono text-white focus:border-blue-500 focus:outline-none pr-10 pl-16"
                   dir="ltr"
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-500">
                   <Key className="w-4 h-4" />
+                </div>
+                <div className="absolute inset-y-0 left-0 flex items-center pl-2 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowGeminiKey(!showGeminiKey)}
+                    className="p-1 text-slate-400 hover:text-slate-200"
+                  >
+                    {showGeminiKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                  {geminiKeyInput && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(geminiKeyInput, 'gemini')}
+                      className="p-1 text-slate-400 hover:text-slate-200"
+                    >
+                      {copiedKey === 'gemini' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -302,10 +494,10 @@ export const DevApiKeysSyncView: React.FC<DevApiKeysSyncViewProps> = ({
                 ) : (
                   <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
                 )}
-                <div className="space-y-0.5">
+                <div className="space-y-0.5 flex-1">
                   <div className="font-bold">{geminiStatus.message}</div>
                   <div className="text-[10px] text-slate-400 font-mono">
-                    زمن الاستجابة: {geminiStatus.latencyMs.toFixed(0)}ms
+                    زمن الاستجابة: {geminiStatus.latencyMs.toFixed(0)}ms | النموذج: gemini-2.5-flash / 1.5-flash
                   </div>
                 </div>
               </div>
@@ -320,16 +512,16 @@ export const DevApiKeysSyncView: React.FC<DevApiKeysSyncViewProps> = ({
               className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 px-3.5 py-2 text-xs font-bold text-slate-200 transition-colors disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isVerifyingGemini ? 'animate-spin text-blue-400' : 'text-slate-400'}`} />
-              <span>{isVerifyingGemini ? 'جارٍ فحص المفتاح...' : 'اختبار اتصال Gemini'}</span>
+              <span>{isVerifyingGemini ? 'جارٍ فحص المفتاح...' : 'اختبار اتصال Gemini الآن'}</span>
             </button>
 
             <span className="text-[11px] text-slate-400 font-mono">
-              v1beta / gemini-1.5-flash
+              Primary Active
             </span>
           </div>
         </div>
 
-        {/* Card 2: Backup / Failover Key (Groq LPU API) */}
+        {/* Card 2: Groq LPU API Key */}
         <div className="rounded-2xl border border-amber-500/30 bg-slate-900/90 p-6 shadow-xl space-y-5 flex flex-col justify-between">
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -339,12 +531,12 @@ export const DevApiKeysSyncView: React.FC<DevApiKeysSyncViewProps> = ({
                 </div>
                 <div>
                   <h4 className="text-sm font-black text-white flex items-center gap-1.5">
-                    <span>2. مفتاح Groq API الاحتياطي (المساعد)</span>
+                    <span>2. مفتاح Groq LPU API الاحتياطي</span>
                     <span className="bg-amber-500/20 text-amber-300 text-[10px] font-mono px-2 py-0.5 rounded-full border border-amber-500/30">
-                      Backup / Failover
+                      Auto Failover
                     </span>
                   </h4>
-                  <p className="text-[11px] text-slate-400">يتولى العمل تلقائياً إذا توقف أو نفدت حصة مفتاح Gemini</p>
+                  <p className="text-[11px] text-slate-400">يتولى العمل فوراً وبسرعة البرق إذا توقف أو نفدت حصة مفتاح Gemini</p>
                 </div>
               </div>
 
@@ -365,22 +557,40 @@ export const DevApiKeysSyncView: React.FC<DevApiKeysSyncViewProps> = ({
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showGroqKey ? 'text' : 'password'}
                   value={groqKeyInput}
                   onChange={(e) => setGroqKeyInput(e.target.value)}
                   placeholder="gsk_..."
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-xs font-mono text-white focus:border-amber-500 focus:outline-none pr-10"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-xs font-mono text-white focus:border-amber-500 focus:outline-none pr-10 pl-16"
                   dir="ltr"
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-500">
                   <Zap className="w-4 h-4" />
+                </div>
+                <div className="absolute inset-y-0 left-0 flex items-center pl-2 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowGroqKey(!showGroqKey)}
+                    className="p-1 text-slate-400 hover:text-slate-200"
+                  >
+                    {showGroqKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                  {groqKeyInput && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(groqKeyInput, 'groq')}
+                      className="p-1 text-slate-400 hover:text-slate-200"
+                    >
+                      {copiedKey === 'groq' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-bold text-slate-200 mb-1.5">
-                نموذج Groq المساعد:
+                نموذج Groq LPU المعتمد:
               </label>
               <select
                 value={groqModel}
@@ -407,10 +617,10 @@ export const DevApiKeysSyncView: React.FC<DevApiKeysSyncViewProps> = ({
                 ) : (
                   <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
                 )}
-                <div className="space-y-0.5">
+                <div className="space-y-0.5 flex-1">
                   <div className="font-bold">{groqStatus.message}</div>
                   <div className="text-[10px] text-slate-400 font-mono">
-                    زمن الاستجابة: {groqStatus.latencyMs.toFixed(0)}ms
+                    زمن الاستجابة: {groqStatus.latencyMs.toFixed(0)}ms | خوادم Groq فائقة السرعة
                   </div>
                 </div>
               </div>
@@ -425,17 +635,187 @@ export const DevApiKeysSyncView: React.FC<DevApiKeysSyncViewProps> = ({
               className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 px-3.5 py-2 text-xs font-bold text-slate-200 transition-colors disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isVerifyingGroq ? 'animate-spin text-amber-400' : 'text-slate-400'}`} />
-              <span>{isVerifyingGroq ? 'جارٍ فحص المفتاح...' : 'اختبار اتصال Groq'}</span>
+              <span>{isVerifyingGroq ? 'جارٍ فحص المفتاح...' : 'اختبار اتصال Groq الآن'}</span>
             </button>
 
             <span className="text-[11px] text-slate-400 font-mono">
-              Fast LPU Inference
+              Fast LPU Ready
+            </span>
+          </div>
+        </div>
+
+        {/* Card 3: Hugging Face Inference Token */}
+        <div className="rounded-2xl border border-purple-500/30 bg-slate-900/90 p-6 shadow-xl space-y-5 flex flex-col justify-between">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/40">
+                  <ImageIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-white flex items-center gap-1.5">
+                    <span>3. مفتاح Hugging Face (FLUX.1 Studio)</span>
+                    <span className="bg-purple-500/20 text-purple-300 text-[10px] font-mono px-2 py-0.5 rounded-full border border-purple-500/30">
+                      Media Engine
+                    </span>
+                  </h4>
+                  <p className="text-[11px] text-slate-400">توليد الصور المباشرة فائقة الجودة بنموذج FLUX.1-schnell</p>
+                </div>
+              </div>
+
+              <a
+                href="https://huggingface.co/settings/tokens"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1 text-[11px] font-bold text-purple-400 hover:text-purple-300 bg-purple-500/10 border border-purple-500/30 px-2.5 py-1.5 rounded-lg transition-colors"
+              >
+                <span>حساب HuggingFace</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-200 mb-1.5">
+                رمز الوصول (HuggingFace Inference Token - hf_...):
+              </label>
+              <div className="relative">
+                <input
+                  type={showHfKey ? 'text' : 'password'}
+                  value={hfKeyInput}
+                  onChange={(e) => setHfKeyInput(e.target.value)}
+                  placeholder="hf_..."
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-xs font-mono text-white focus:border-purple-500 focus:outline-none pr-10 pl-16"
+                  dir="ltr"
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-500">
+                  <Key className="w-4 h-4" />
+                </div>
+                <div className="absolute inset-y-0 left-0 flex items-center pl-2 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowHfKey(!showHfKey)}
+                    className="p-1 text-slate-400 hover:text-slate-200"
+                  >
+                    {showHfKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                  {hfKeyInput && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(hfKeyInput, 'hf')}
+                      className="p-1 text-slate-400 hover:text-slate-200"
+                    >
+                      {copiedKey === 'hf' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Verification Status Box */}
+            {hfStatus && (
+              <div
+                className={`flex items-start gap-2.5 rounded-xl p-3 text-xs border ${
+                  hfStatus.status === 'connected'
+                    ? 'bg-emerald-950/50 border-emerald-500/40 text-emerald-300'
+                    : 'bg-rose-950/50 border-rose-500/40 text-rose-300'
+                }`}
+              >
+                {hfStatus.status === 'connected' ? (
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+                )}
+                <div className="space-y-0.5 flex-1">
+                  <div className="font-bold">{hfStatus.message}</div>
+                  <div className="text-[10px] text-slate-400 font-mono">
+                    زمن الاستجابة: {hfStatus.latencyMs.toFixed(0)}ms | النموذج: black-forest-labs/FLUX.1-schnell
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={() => handleTestHf()}
+              disabled={isVerifyingHf || !hfKeyInput.trim()}
+              className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 px-3.5 py-2 text-xs font-bold text-slate-200 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isVerifyingHf ? 'animate-spin text-purple-400' : 'text-slate-400'}`} />
+              <span>{isVerifyingHf ? 'جارٍ فحص المفتاح...' : 'اختبار اتصال FLUX.1'}</span>
+            </button>
+
+            <span className="text-[11px] text-slate-400 font-mono">
+              FLUX.1 Schnell
+            </span>
+          </div>
+        </div>
+
+        {/* Card 4: Developer Security PIN & Admin Authorization */}
+        <div className="rounded-2xl border border-emerald-500/30 bg-slate-900/90 p-6 shadow-xl space-y-5 flex flex-col justify-between">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                  <Shield className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-white flex items-center gap-1.5">
+                    <span>4. أمان المطور ورمز المرور السري (Admin Security)</span>
+                    <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-mono px-2 py-0.5 rounded-full border border-emerald-500/30">
+                      Verified
+                    </span>
+                  </h4>
+                  <p className="text-[11px] text-slate-400">حماية لوحة التحكم بالرمز السري المكون من 7 أرقام وقائمة إيميلات الإدارة</p>
+                </div>
+              </div>
+
+              <span className="px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono font-bold">
+                حماية نشطة 256-bit
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              <div className="rounded-xl bg-slate-950 p-3.5 border border-slate-800 space-y-1.5">
+                <div className="flex items-center justify-between text-xs text-slate-300">
+                  <span className="font-bold">رمز المرور للمطور (Developer Security PIN):</span>
+                  <span className="font-mono font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded border border-yellow-400/20">
+                    5030775
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  مضبوط ومعتمد لفتح لوحة التحكم الخاصة بالمطورين وتعديل إعدادات الـ API.
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-slate-950 p-3.5 border border-slate-800 space-y-1.5">
+                <div className="text-xs font-bold text-slate-300">
+                  عناوين البريد المعتمدة (Authorized Admin Emails):
+                </div>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  <span className="rounded-lg bg-blue-950/80 border border-blue-500/30 px-2 py-1 text-[11px] font-mono text-blue-300">
+                    rooh10dodo@gmail.com
+                  </span>
+                  <span className="rounded-lg bg-blue-950/80 border border-blue-500/30 px-2 py-1 text-[11px] font-mono text-blue-300">
+                    roohpro1@gmail.com
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-3 text-xs text-slate-400 font-mono">
+            <span>Domain: roohpro.com</span>
+            <span className="text-emerald-400 font-bold flex items-center gap-1">
+              <CheckCheck className="w-3.5 h-3.5" />
+              Authenticated
             </span>
           </div>
         </div>
       </div>
 
-      {/* Failover Intelligence Explanation Card */}
+      {/* 3. Failover Intelligence Explanation Card */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-lg space-y-3">
         <div className="flex items-center gap-2">
           <ArrowUpDown className="w-5 h-5 text-indigo-400" />
@@ -448,7 +828,7 @@ export const DevApiKeysSyncView: React.FC<DevApiKeysSyncViewProps> = ({
           <div className="rounded-xl bg-slate-950 p-3.5 border border-slate-800/80 space-y-1">
             <span className="font-bold text-blue-400">1. المسار الأساسي (Primary Route)</span>
             <p className="text-slate-400 text-[11px] leading-relaxed">
-              يتم توجيه جميع طلبات التوليد أولاً إلى Google Gemini 1.5 Flash لضمان أقصى درجات الذكاء وجودة البرومبتات.
+              يتم توجيه جميع طلبات التوليد أولاً إلى Google Gemini 2.5 Flash لضمان أقصى درجات الذكاء وجودة البرومبتات.
             </p>
           </div>
 

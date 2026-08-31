@@ -15,6 +15,7 @@ import { getNumericCode } from './utils/idHelper';
 import { WINDOW_SLUGS, getWindowIdFromSlug } from './utils/seoRoutes';
 import { Sparkles, Layers, ShieldCheck, Code, Eye, ExternalLink, Shield, Bug, Info, FileText } from 'lucide-react';
 import { AuthModal } from './components/auth/AuthModal';
+import { UserKeyManagerModal } from './components/UserKeyManagerModal';
 import { PrivacyPolicyModal } from './components/modals/PrivacyPolicyModal';
 import { ReportIssueModal } from './components/modals/ReportIssueModal';
 import { TermsOfServiceModal } from './components/modals/TermsOfServiceModal';
@@ -27,6 +28,7 @@ export default function App() {
   const [activeWindowId, setActiveWindowId] = useState<WindowId>(1);
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [devPanelOpen, setDevPanelOpen] = useState(false);
+  const [userKeyModalOpen, setUserKeyModalOpen] = useState(false);
 
   // 4 Dedicated Colored Footer Modals State
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
@@ -199,6 +201,7 @@ export default function App() {
         onGoHome={handleGoHome}
         onSelectWindow={handleSelectWindow}
         onOpenDevPanel={() => setDevPanelOpen(true)}
+        onOpenUserKeyManager={() => setUserKeyModalOpen(true)}
       />
 
       {/* Top Center Notification Ad Banner (Safe Isolated CPM Network) */}
@@ -360,6 +363,12 @@ export default function App() {
         isOpen={devPanelOpen}
         onClose={() => setDevPanelOpen(false)}
         onDataChanged={refreshData}
+      />
+
+      {/* User Gemini API Key Management Modal */}
+      <UserKeyManagerModal
+        isOpen={userKeyModalOpen}
+        onClose={() => setUserKeyModalOpen(false)}
       />
 
       {/* Global Authentication Modal */}

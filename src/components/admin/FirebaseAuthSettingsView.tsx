@@ -22,13 +22,14 @@ export const FirebaseAuthSettingsView: React.FC = () => {
   const [copiedEnv, setCopiedEnv] = useState(false);
   const isConfigured = firebaseService.isFirebaseConfigured();
 
-  const ENV_SNIPPET = `# Firebase Authentication & Firestore Configuration
-VITE_FIREBASE_API_KEY=your_firebase_api_key_here
-VITE_FIREBASE_AUTH_DOMAIN=rooh-ai-hub.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=rooh-ai-hub
-VITE_FIREBASE_STORAGE_BUCKET=rooh-ai-hub.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
-VITE_FIREBASE_APP_ID=1:123456789:web:abcdef`;
+  const ENV_SNIPPET = `# Firebase Backend Configuration
+VITE_FIREBASE_API_KEY=${import.meta.env.VITE_FIREBASE_API_KEY || 'YOUR_FIREBASE_API_KEY'}
+VITE_FIREBASE_AUTH_DOMAIN=${import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'ai-studio-applet-webapp-81560.firebaseapp.com'}
+VITE_FIREBASE_DATABASE_URL=${import.meta.env.VITE_FIREBASE_DATABASE_URL || 'https://ai-studio-applet-webapp-81560-default-rtdb.firebaseio.com'}
+VITE_FIREBASE_PROJECT_ID=${import.meta.env.VITE_FIREBASE_PROJECT_ID || 'ai-studio-applet-webapp-81560'}
+VITE_FIREBASE_STORAGE_BUCKET=${import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'ai-studio-applet-webapp-81560.firebasestorage.app'}
+VITE_FIREBASE_MESSAGING_SENDER_ID=${import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || 'YOUR_FIREBASE_MESSAGING_SENDER_ID'}
+VITE_FIREBASE_APP_ID=${import.meta.env.VITE_FIREBASE_APP_ID || 'YOUR_FIREBASE_APP_ID'}`;
 
   const handleCopyEnv = () => {
     navigator.clipboard.writeText(ENV_SNIPPET);

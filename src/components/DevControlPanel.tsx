@@ -46,6 +46,7 @@ import { DEFAULT_AI_BRAIN_JSON, WINDOWS_INFO, INITIAL_DEV_SETTINGS } from '../da
 import { generateAIPromptFromDescription } from '../services/aiService';
 import { useAdminConfig } from '../context/AdminConfigContext';
 import { getNumericCode } from '../utils/idHelper';
+import { isAuthorizedAdminEmail, verifyDeveloperPin, setDeveloperSessionAuthenticated, clearDeveloperSession, isDeveloperOrAdminAuthenticated } from '../lib/authAdmin';
 import { AspectRatioSelectorBar } from './AspectRatioSelectorBar';
 import { CloudflareEcosystemDashboard } from './cloudflare/CloudflareEcosystemDashboard';
 import { PortalConfigView } from './admin/PortalConfigView';
@@ -74,7 +75,7 @@ export const DevControlPanel: React.FC<DevControlPanelProps> = ({
 
   // Authentication State for /admin route
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem('rooh_admin_authenticated') === 'true';
+    return isDeveloperOrAdminAuthenticated();
   });
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
@@ -134,33 +135,31 @@ export const DevControlPanel: React.FC<DevControlPanelProps> = ({
 
   if (!isOpen) return null;
 
-  // Handle developer credentials and password login (Supporting Email + 7-digit PIN & Firebase rules)
+  // Handle developer credentials and password login (Supporting Admin Emails & 7-digit PIN 5030775)
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     const cleanPass = passwordInput.trim();
     const cleanEmail = emailInput.trim().toLowerCase();
 
-    // 1. Check if 7-digit numerical passcode or admin tokens or developer credentials
-    const isSevenDigitPin = /^\d{7}$/.test(cleanPass);
-    const isStandardAdmin = cleanPass === 'admin123' || cleanPass === 'rooh2025' || cleanPass === 'admin';
-    const isDevEmail = !cleanEmail || cleanEmail.includes('@');
+    // 1. Verify if email belongs to authorized Rooh Pro AI admins (rooh10dodo@gmail.com, roohpro1@gmail.com)
+    const isAdminEmail = isAuthorizedAdminEmail(cleanEmail);
 
-    if (isSevenDigitPin || isStandardAdmin) {
+    // 2. Verify Developer Verification Code 5030775 or developer PIN
+    const isPinValid = verifyDeveloperPin(cleanPass);
+
+    if (isAdminEmail || isPinValid) {
       setIsAuthenticated(true);
-      localStorage.setItem('rooh_admin_authenticated', 'true');
-      if (cleanEmail) {
-        localStorage.setItem('rooh_admin_authenticated_email', cleanEmail);
-      }
+      setDeveloperSessionAuthenticated(cleanEmail || 'developer@roohpro.com');
       setPasswordError(null);
-      showToast('🔓 مرحباً بك يا مطور، تم التحقق ومصادقة الدخول بنجاح!');
+      showToast('🔓 مرحباً بك في لوحة تحكم Rooh Pro AI، تم التحقق ومصادقة الدخول بنجاح!');
     } else {
-      setPasswordError('يرجى إدخال رمز المرور أو الرمز المكون من 7 أرقام المعين في Firebase.');
+      setPasswordError('بيانات غير صحيحة. يرجى استخدام البريد المعتمد أو رمز التحقق للمطور (5030775).');
     }
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    localStorage.removeItem('rooh_admin_authenticated');
+    clearDeveloperSession();
   };
 
   // Helper to get items for specific window
@@ -470,6 +469,16 @@ export const DevControlPanel: React.FC<DevControlPanelProps> = ({
           <div className="flex items-center gap-2">
             {isAuthenticated && (
               <>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab(13)}
+                  className="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-950/60 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-900/60 transition-all font-bold"
+                  title="الوضع الحقيقي المباشر نشط"
+                >
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="hidden sm:inline">الوضع الحقيقي بالكامل (Live Mode)</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={handleWipeAllTestItems}

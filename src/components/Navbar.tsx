@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Home, Bell, Check } from 'lucide-react';
+import { Home, Bell, Check, Key } from 'lucide-react';
 import { WindowId } from '../types';
+import { userCreationsService } from '../services/userCreationsService';
 
 interface NavbarProps {
   currentView: 'home' | 'window' | 'item';
@@ -9,6 +10,7 @@ interface NavbarProps {
   onGoHome: () => void;
   onSelectWindow: (winId: WindowId) => void;
   onOpenDevPanel: () => void;
+  onOpenUserKeyManager?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -16,8 +18,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   activeWindowId,
   onGoHome,
   onSelectWindow,
-  onOpenDevPanel
+  onOpenDevPanel,
+  onOpenUserKeyManager
 }) => {
+  const [hasUserKey, setHasUserKey] = useState<boolean>(() => {
+    return !!userCreationsService.getUserGeminiApiKey();
+  });
   const [logoClicks, setLogoClicks] = useState<number>(0);
   const [isSubscribed, setIsSubscribed] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -145,8 +151,26 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Center / Left Navigation Action Slot (Direct 3D Subscribe or Home Button) */}
+        {/* Center / Left Navigation Action Slot (Direct 3D Subscribe or Home Button + User API Key) */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {onOpenUserKeyManager && (
+            <button
+              type="button"
+              id="nav-user-key-btn"
+              onClick={onOpenUserKeyManager}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-xs border cursor-pointer ${
+                hasUserKey
+                  ? 'bg-amber-500/10 text-amber-300 border-amber-500/30 hover:bg-amber-500/20'
+                  : 'bg-slate-100/80 text-slate-700 border-slate-300 hover:bg-slate-200/80'
+              }`}
+              title="إدارة مفتاح Google Gemini API الخاص بك"
+            >
+              <Key className={`w-3.5 h-3.5 ${hasUserKey ? 'text-amber-400' : 'text-slate-600'}`} />
+              <span className="hidden sm:inline">{hasUserKey ? 'مفتاحي مفعّل' : 'مفتاح Gemini'}</span>
+              {hasUserKey && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+            </button>
+          )}
+
           {currentView === 'home' ? (
             /* ON HOME VIEW: Instant Direct 3D Subscribe / Subscribed Toggle Button */
             <button
