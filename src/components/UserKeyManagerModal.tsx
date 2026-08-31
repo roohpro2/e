@@ -111,10 +111,13 @@ export const UserKeyManagerModal: React.FC<UserKeyManagerModalProps> = ({
         return;
       }
 
-      // 2. Persist locally and in Firebase permanent vault
-      await userCreationsService.saveUserGeminiApiKey(apiKeyInput.trim());
+      // 2. Persist locally, in Firebase permanent vault, and in Cloudflare KV edge cache
+      await userCreationsService.saveUserGeminiApiKey(apiKeyInput.trim(), {
+        userId: user?.uid || activeSessionUid,
+        email: user?.email || undefined
+      });
       setHasSavedKey(true);
-      showToast('✨ تم حفظ المفتاح وتفعيله وحفظه في خزينة سحابة Firebase الآمنة', 'success');
+      showToast('✨ تم حفظ وتفعيل المفتاح ومزامنته في Firebase و Cloudflare KV!', 'success');
 
       if (onKeySaved) {
         onKeySaved();

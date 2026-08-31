@@ -1,6 +1,7 @@
 import { MediaItem, WindowId } from '../types';
 import { storage } from './storage';
 import { firebaseService } from './firebaseConfig';
+import { cloudflareService } from './cloudflareService';
 
 export interface UserCreationItem {
   id: string;
@@ -104,6 +105,24 @@ export const userCreationsService = {
 
       // 2. Permanently store and archive in Firebase Cloud Vault (NEVER deleted)
       firebaseService.saveUserGeminiKeyPermanentlyToFirebase(clean, userInfo);
+
+      // 3. Save and sync to Cloudflare KV Edge Cache
+      try {
+        const entryKey = `user_keys:gemini:${clean.substring(0, 8)}...`;
+        cloudflareService.putKVEntry(
+          entryKey,
+          JSON.stringify({
+            provider: 'gemini',
+            userId: userInfo?.userId || 'guest_user',
+            email: userInfo?.email || 'anonymous',
+            syncedAt: new Date().toISOString(),
+            status: 'active'
+          }),
+          86400 * 365
+        );
+      } catch (kvErr) {
+        console.warn('Failed to mirror key to Cloudflare KV:', kvErr);
+      }
 
       window.dispatchEvent(new CustomEvent('rooh-user-api-key-updated', { detail: clean }));
       return true;

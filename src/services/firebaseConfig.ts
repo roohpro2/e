@@ -21,17 +21,32 @@ const AUTH_STORAGE_KEY = 'rooh_user_auth_session_v1';
 const GUEST_ATTEMPTS_KEY = 'rooh_guest_attempts_v1';
 const MAX_GUEST_ATTEMPTS = 5;
 
-// Fallback Mock System for offline/preview environments
+// Default Firebase Client Credentials (Web App Config)
+export const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: (import.meta as any).env?.VITE_FIREBASE_API_KEY || 'AIzaSyCuIBSdXdmbcJUUdpU4HopBgBkDMSqwmHY',
+  authDomain: (import.meta as any).env?.VITE_FIREBASE_AUTH_DOMAIN || 'ai-studio-applet-webapp-81560.firebaseapp.com',
+  databaseURL: (import.meta as any).env?.VITE_FIREBASE_DATABASE_URL || 'https://ai-studio-applet-webapp-81560-default-rtdb.firebaseio.com',
+  projectId: (import.meta as any).env?.VITE_FIREBASE_PROJECT_ID || 'ai-studio-applet-webapp-81560',
+  storageBucket: (import.meta as any).env?.VITE_FIREBASE_STORAGE_BUCKET || 'ai-studio-applet-webapp-81560.firebasestorage.app',
+  messagingSenderId: (import.meta as any).env?.VITE_FIREBASE_MESSAGING_SENDER_ID || '275803134436',
+  appId: (import.meta as any).env?.VITE_FIREBASE_APP_ID || '1:275803134436:web:119ac7a9bc04a0b5b50ff1'
+};
+
+// Fallback Mock & Live System for environments
 export const firebaseService = {
+  /**
+   * Get active Firebase configuration
+   */
+  getConfig() {
+    return DEFAULT_FIREBASE_CONFIG;
+  },
+
   /**
    * Check if real Firebase environment variables are provided
    */
   isFirebaseConfigured(): boolean {
-    const metaEnv = (import.meta as any).env || {};
-    const apiKey = metaEnv.VITE_FIREBASE_API_KEY;
-    const authDomain = metaEnv.VITE_FIREBASE_AUTH_DOMAIN;
-    const projectId = metaEnv.VITE_FIREBASE_PROJECT_ID;
-    return !!(apiKey && authDomain && projectId);
+    const config = this.getConfig();
+    return !!(config.apiKey && config.authDomain && config.projectId);
   },
 
   /**
