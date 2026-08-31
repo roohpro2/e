@@ -271,14 +271,28 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
             <Eye className="w-3 h-3 text-yellow-400" />
             <span>{item.views || 100} مشاهدة</span>
           </div>
+
+          {/* Community Creator Badge */}
+          {item.authorName && (
+            <div className="absolute top-2 right-2 rounded-md bg-gradient-to-r from-purple-600 to-indigo-600 px-2 py-0.5 text-[9px] font-black text-white shadow-xs flex items-center gap-1 border border-yellow-400/40">
+              <Sparkles className="w-2.5 h-2.5 text-yellow-300" />
+              <span className="truncate max-w-[80px]">{item.authorName}</span>
+            </div>
+          )}
         </div>
 
         {/* Card Footer Bar: 3D Start Button + Window Info */}
         <div className="flex items-center justify-between z-10 pt-2 border-t border-slate-100 text-xs">
-          <div className="flex items-center gap-1">
-            <span className="text-[11px] font-bold text-slate-700">
-              دخول البرومبت:
-            </span>
+          <div className="flex items-center gap-1 min-w-0">
+            {item.authorName ? (
+              <span className="text-[10px] font-bold text-purple-700 truncate">
+                بواسطة: {item.authorName}
+              </span>
+            ) : (
+              <span className="text-[11px] font-bold text-slate-700">
+                دخول البرومبت:
+              </span>
+            )}
           </div>
 
           <button

@@ -44,6 +44,12 @@ export interface MediaItem {
   analysisData?: AnalysisData;
   views?: number;
   copies?: number;
+  authorName?: string;
+  authorId?: string;
+  authorAvatar?: string;
+  isCommunityPublished?: boolean;
+  folderName?: string;
+  reviewStatus?: 'approved' | 'pending' | 'rejected' | 'local_only';
   createdAt: string;
 }
 

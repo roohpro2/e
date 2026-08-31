@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Upload, Wand2, Sparkles, Copy, Check, ScanEye, RefreshCw, AlertCircle, ExternalLink } from 'lucide-react';
+import { Upload, Wand2, Sparkles, Copy, Check, ScanEye, RefreshCw, AlertCircle, ExternalLink, BookmarkPlus, Send } from 'lucide-react';
 import { AnalysisData } from '../types';
 import { analyzeImageWithAI } from '../services/aiService';
 import { storage } from '../services/storage';
+import { userCreationsService } from '../services/userCreationsService';
 import { adManager } from '../services/adManager';
 import { AspectRatioSelectorBar } from './AspectRatioSelectorBar';
 import { useQuotaManager } from '../hooks/useQuotaManager';
@@ -27,6 +28,29 @@ export const ImageVisionAnalyzer: React.FC<ImageVisionAnalyzerProps> = ({ onProm
     useAttempt,
     handleExternalGemini
   } = useQuotaManager();
+
+  const [savedToPortfolio, setSavedToPortfolio] = useState(false);
+
+  const handleSaveToPortfolio = () => {
+    if (!analysisResult) return;
+    userCreationsService.saveUserCreation({
+      windowId: 6,
+      title: userCustomNote ? `تحليل: ${userCustomNote.slice(0, 30)}` : 'هندسة بصرية معكوسة',
+      prompt: analysisResult.extractedPrompt,
+      mediaType: 'reverse_vision',
+      url: selectedImage || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80',
+      model: 'Gemini Vision 2.5 / Midjourney v6',
+      tags: ['هندسة معكوسة', ...analysisResult.styleKeywords],
+      folderName: 'هندسة معكوسة',
+      authorName: 'مبدع الذكاء الاصطناعي',
+      authorId: 'user-creator',
+      showAuthorIdentity: true,
+      reviewStatus: 'local_only',
+      botName: 'روبوت الهندسة المعكوسة والرؤية البصرية',
+    });
+    setSavedToPortfolio(true);
+    setTimeout(() => setSavedToPortfolio(false), 3000);
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -243,17 +267,32 @@ export const ImageVisionAnalyzer: React.FC<ImageVisionAnalyzerProps> = ({ onProm
 
               {/* Extracted Prompt Box */}
               <div className="rounded-xl border border-slate-800 bg-slate-900 p-4 text-white">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                   <span className="text-xs font-bold text-yellow-400">
                     البرومبت المعكوس المستخرج (Prompt):
                   </span>
-                  <button
-                    onClick={() => handleCopy(analysisResult.extractedPrompt)}
-                    className="flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1 text-xs font-bold text-white hover:bg-blue-700 transition-colors shadow-2xs border border-yellow-400"
-                  >
-                    {copiedPrompt ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5 text-white" />}
-                    <span>{copiedPrompt ? 'تم النسخ!' : 'نسخ البرومبت'}</span>
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={handleSaveToPortfolio}
+                      className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-bold transition-all shadow-2xs border ${
+                        savedToPortfolio
+                          ? 'bg-emerald-600 text-white border-emerald-400'
+                          : 'bg-slate-800 text-amber-300 hover:bg-slate-700 border-amber-400/40'
+                      }`}
+                    >
+                      {savedToPortfolio ? <Check className="w-3.5 h-3.5" /> : <BookmarkPlus className="w-3.5 h-3.5" />}
+                      <span>{savedToPortfolio ? 'تم الحفظ في محفظتك!' : 'حفظ في محفظتي'}</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleCopy(analysisResult.extractedPrompt)}
+                      className="flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1 text-xs font-bold text-white hover:bg-blue-700 transition-colors shadow-2xs border border-yellow-400"
+                    >
+                      {copiedPrompt ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5 text-white" />}
+                      <span>{copiedPrompt ? 'تم النسخ!' : 'نسخ البرومبت'}</span>
+                    </button>
+                  </div>
                 </div>
                 <p className="font-mono text-xs text-emerald-400 leading-relaxed select-all">
                   {analysisResult.extractedPrompt}
