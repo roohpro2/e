@@ -23,6 +23,17 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
+  React.useEffect(() => {
+    if (isHelpModalOpen) {
+      document.body.classList.add('modal-open');
+    } else if (!isProfileModalOpen) {
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isHelpModalOpen, isProfileModalOpen]);
+
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setErrorMsg('');
@@ -194,9 +205,9 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
 
       {/* Interactive 3D Dynamic Popup Modal Window for the '?' Button */}
       {isHelpModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-200">
           <div
-            className="relative w-full max-w-md overflow-hidden rounded-3xl border-2 border-yellow-400 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.35),0_0_30px_rgba(250,204,21,0.4)] animate-in zoom-in-95 duration-200"
+            className="relative w-full max-w-md max-h-[calc(90vh-50px)] overflow-y-auto rounded-3xl border-2 border-yellow-400 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.35),0_0_30px_rgba(250,204,21,0.4)] animate-in zoom-in-95 duration-200 transform -translate-y-[50px] sm:-translate-y-[50px]"
             dir="rtl"
           >
             {/* Tri-color Top Accent Bar */}

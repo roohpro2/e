@@ -324,50 +324,5 @@ export const firebaseService = {
       }
     } catch (_) {}
     return null;
-  },
-
-  /**
-   * Realtime Database & User Economy Integration (Portal 5 Games & Coins)
-   */
-  async getUserCoinBalance(userId?: string): Promise<number> {
-    try {
-      const uid = userId || this.getCurrentUser()?.uid || 'guest_user';
-      const stored = localStorage.getItem(`rooh_coins_${uid}`);
-      if (stored !== null) {
-        return parseInt(stored, 10) || 0;
-      }
-      const initialBonus = 100;
-      localStorage.setItem(`rooh_coins_${uid}`, initialBonus.toString());
-      return initialBonus;
-    } catch {
-      return 100;
-    }
-  },
-
-  async updateUserCoins(delta: number, userId?: string): Promise<number> {
-    try {
-      const uid = userId || this.getCurrentUser()?.uid || 'guest_user';
-      const current = await this.getUserCoinBalance(uid);
-      const updated = Math.max(0, current + delta);
-      localStorage.setItem(`rooh_coins_${uid}`, updated.toString());
-
-      if (this.isFirebaseConfigured()) {
-        console.log(`[Firebase Realtime DB] Updated user ${uid} coin balance to: ${updated}`);
-      }
-
-      return updated;
-    } catch {
-      return 0;
-    }
-  },
-
-  async getGameLeaderboards(): Promise<Array<{ rank: number; name: string; score: number; coins: number; avatar: string }>> {
-    return [
-      { rank: 1, name: 'سلطان الذكاء', score: 9850, coins: 4200, avatar: '👑' },
-      { rank: 2, name: 'نجم البرومبت', score: 8400, coins: 3150, avatar: '⭐' },
-      { rank: 3, name: 'فنان FLUX', score: 7600, coins: 2800, avatar: '🎨' },
-      { rank: 4, name: 'مبدع الفيديو 4K', score: 6900, coins: 2100, avatar: '🚀' },
-      { rank: 5, name: 'صائد الرموز', score: 5400, coins: 1500, avatar: '💎' }
-    ];
   }
 };

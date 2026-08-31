@@ -8,15 +8,26 @@ interface AboutPlatformModalProps {
 }
 
 export const AboutPlatformModal: React.FC<AboutPlatformModalProps> = ({ isOpen, onClose }) => {
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
     <div
       id="about-platform-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200"
       dir="rtl"
     >
-      <div className="relative w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden rounded-3xl border-2 border-emerald-500/60 bg-slate-950 text-white shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_35px_rgba(16,185,129,0.3)] animate-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-2xl max-h-[calc(85vh-50px)] flex flex-col overflow-hidden rounded-3xl border-2 border-emerald-500/60 bg-slate-950 text-white shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_35px_rgba(16,185,129,0.3)] animate-in zoom-in-95 duration-200 transform -translate-y-[50px] sm:-translate-y-[50px]">
         
         {/* Dynamic Emerald/Green Accent Top Bar */}
         <div className="h-2 w-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 shrink-0" />

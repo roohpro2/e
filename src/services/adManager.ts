@@ -52,6 +52,23 @@ export const TOP_NOTIFICATION_SCRIPT_SRC = 'https://pl31050117.profitableratecpm
  */
 export function showMonetagAd(force: boolean = false): boolean {
   try {
+    // Check if dev panel or any modal is currently open
+    if (typeof document !== 'undefined') {
+      const isDevPanelActive = document.body.classList.contains('dev-panel-open') || 
+        !!document.getElementById('dev-control-panel-modal');
+      const isModalActive = document.body.classList.contains('modal-open') ||
+        !!document.getElementById('user-key-manager-modal') ||
+        !!document.getElementById('firebase-auth-modal') ||
+        !!document.getElementById('privacy-policy-modal') ||
+        !!document.getElementById('report-issue-modal') ||
+        !!document.getElementById('terms-of-service-modal') ||
+        !!document.getElementById('about-platform-modal');
+
+      if (isDevPanelActive || isModalActive) {
+        return false;
+      }
+    }
+
     const devSettings = storage.getDevSettings();
     // مفتاح الإيقاف الشامل: عند إيقاف الإعلانات من لوحة التحكم تتوقف تماماً فوراً
     if (devSettings.adNetworks && devSettings.adNetworks.globalAdsEnabled === false) {

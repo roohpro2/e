@@ -31,6 +31,17 @@ export const SitemapModal: React.FC<SitemapModalProps> = ({ isOpen, onClose }) =
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [items] = useState<MediaItem[]>(() => storage.getItems());
 
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const copyUrl = (url: string, key: string) => {
@@ -106,10 +117,10 @@ export const SitemapModal: React.FC<SitemapModalProps> = ({ isOpen, onClose }) =
   return (
     <div
       id="sitemap-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 backdrop-blur-sm animate-in fade-in duration-150"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/75 p-3 backdrop-blur-sm animate-in fade-in duration-150"
       dir="rtl"
     >
-      <div className="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-2xl">
+      <div className="relative flex max-h-[calc(90vh-50px)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-2xl transform -translate-y-[50px] sm:-translate-y-[50px]">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-6 py-4">
           <div className="flex items-center gap-3">

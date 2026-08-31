@@ -32,8 +32,8 @@ import { Portal1PromptStudio } from './portals/Portal1PromptStudio';
 import { Portal2ImageStudio } from './portals/Portal2ImageStudio';
 import { Portal3VideoStudio } from './portals/Portal3VideoStudio';
 import { Portal4VoicePages } from './portals/Portal4VoicePages';
-import { Portal5GamesEconomy } from './portals/Portal5GamesEconomy';
-import { Portal6AuthDevAdmin } from './portals/Portal6AuthDevAdmin';
+import { Portal5CommercialAds } from './portals/Portal5CommercialAds';
+import { Portal6VisionStudio } from './portals/Portal6VisionStudio';
 
 interface WindowGalleryViewProps {
   windowId: WindowId;
@@ -390,16 +390,9 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
         {windowId === 2 && <Portal2ImageStudio />}
         {windowId === 3 && <Portal3VideoStudio />}
         {windowId === 4 && <Portal4VoicePages />}
-        {windowId === 5 && <Portal5GamesEconomy />}
-        {windowId === 6 && <Portal6AuthDevAdmin />}
+        {windowId === 5 && <Portal5CommercialAds />}
+        {windowId === 6 && <Portal6VisionStudio />}
       </div>
-
-      {/* SPECIAL FEATURE FOR WINDOW 6 & 3: AI Reverse Vision & Prompt Analyzer */}
-      {(windowId === 6 || windowId === 3) && (
-        <div className="mb-6">
-          <ImageVisionAnalyzer />
-        </div>
-      )}
 
       {/* Items Section Header */}
       <div className="flex items-center justify-between px-1">

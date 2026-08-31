@@ -108,6 +108,37 @@ export const DevControlPanel: React.FC<DevControlPanelProps> = ({
 
   // Form state for adding an Ad
   const [isAddingAd, setIsAddingAd] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('dev-panel-open');
+      // Clean up any dynamic ad containers or elements from DOM while inside dev panel
+      try {
+        const adElements = document.querySelectorAll(
+          '[id*="profitableratecpm"], [id*="container-"], [class*="profitableratecpm"], #bottom-ad-banner-slot'
+        );
+        adElements.forEach((el) => {
+          (el as HTMLElement).style.display = 'none';
+        });
+      } catch {
+        // ignore
+      }
+    } else {
+      document.body.classList.remove('dev-panel-open');
+      try {
+        const bottomSlot = document.getElementById('bottom-ad-banner-slot');
+        if (bottomSlot) {
+          bottomSlot.style.display = '';
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    return () => {
+      document.body.classList.remove('dev-panel-open');
+    };
+  }, [isOpen]);
   const [adFormData, setAdFormData] = useState<Partial<AdBanner>>({
     title: '',
     sponsorName: '',
@@ -431,10 +462,99 @@ export const DevControlPanel: React.FC<DevControlPanelProps> = ({
     { id: 12, name: 'خرائط الموقع والأرشفة الديناميكية (Sitemaps SEO)', icon: <Globe className="w-4 h-4 text-emerald-400 animate-pulse" />, badge: 'roohpro.com/ai' }
   ];
 
+  if (!isOpen) return null;
+
+  // PASSWORD PROTECTED LOGIN SCREEN (Sleek, Elevated, Compact, No Bloated Header)
+  if (!isAuthenticated) {
+    return (
+      <div
+        id="dev-login-modal"
+        className="fixed inset-0 z-[99999] flex items-start justify-center pt-4 sm:pt-8 p-3 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
+        dir="rtl"
+      >
+        <div className="relative w-full max-w-md max-h-[calc(90vh-30px)] flex flex-col overflow-hidden rounded-3xl border-2 border-blue-500/70 bg-slate-950 text-white shadow-[0_25px_70px_rgba(0,0,0,0.95),0_0_40px_rgba(59,130,246,0.35)] animate-in zoom-in-95 duration-200 transform -translate-y-2 sm:-translate-y-6">
+          
+          {/* Dynamic Top Gradient Accent Line */}
+          <div className="h-2 w-full bg-gradient-to-r from-blue-600 via-amber-400 to-rose-500 shrink-0" />
+
+          {/* Compact Top Bar with Only Direct Close Button */}
+          <div className="flex items-center justify-between px-5 py-3 border-b border-slate-800 bg-slate-900/90">
+            <div className="flex items-center gap-2 text-slate-500">
+              <Lock className="w-4 h-4 text-slate-400" />
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Form Body */}
+          <div className="p-5 sm:p-6 overflow-y-auto space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">
+                  البريد الإلكتروني:
+                </label>
+                <input
+                  type="email"
+                  value={emailInput}
+                  onChange={(e) => {
+                    setEmailInput(e.target.value);
+                    setPasswordError(null);
+                  }}
+                  placeholder=""
+                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none font-mono"
+                  dir="ltr"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">
+                  رمز المرور:
+                </label>
+                <input
+                  type="password"
+                  value={passwordInput}
+                  onChange={(e) => {
+                    setPasswordInput(e.target.value);
+                    setPasswordError(null);
+                  }}
+                  placeholder=""
+                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none font-mono"
+                  dir="ltr"
+                  autoFocus
+                />
+              </div>
+
+              {passwordError && (
+                <div className="flex items-center gap-2 rounded-xl bg-red-950/80 border border-red-500/40 p-2.5 text-xs text-red-300">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                  <span>{passwordError}</span>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 py-3 text-xs font-black text-white shadow-lg active:scale-95 border border-blue-400 cursor-pointer transition-all"
+              >
+                <Unlock className="w-4 h-4 text-amber-300" />
+                <span>دخول</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       id="dev-control-panel-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-2 sm:p-4 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/90 p-2 sm:p-4 backdrop-blur-md animate-in fade-in duration-200"
     >
       <div className="relative flex h-[94vh] w-full max-w-7xl flex-col overflow-hidden rounded-3xl border border-slate-800 bg-slate-950 text-slate-100 shadow-2xl shadow-blue-500/10" dir="rtl">
         {/* Toast Notification */}
@@ -445,159 +565,53 @@ export const DevControlPanel: React.FC<DevControlPanelProps> = ({
           </div>
         )}
 
-        {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900/90 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400">
-              <Code2 className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-black text-white">
-                  لوحة تحكم المطور وإدارة المنصة المتقدمة (Admin Dashboard)
-                </h3>
-                <span className="rounded-full bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
-                  v2.5 Full-Stack
-                </span>
-              </div>
-              <p className="text-xs text-slate-400">
-                إدارة البوابات الست، التوليد والاعتماد اليومي، مفاتيح APIs، الإحصائيات الحية وسحابة Cloudflare و Firebase
-              </p>
-            </div>
+        {/* Top Control Bar with Actions and Close Button Only */}
+        <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900/95 px-4 sm:px-6 py-2.5 shrink-0">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveTab(13)}
+              className="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-950/60 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-900/60 transition-all font-bold"
+              title="الوضع الحقيقي المباشر نشط"
+            >
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="hidden sm:inline">الوضع الحقيقي (Live)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleWipeAllTestItems}
+              title="مسح وتنظيف كافة العناصر التجريبية"
+              className="flex items-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs text-rose-400 hover:bg-rose-500/20 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">تنظيف العناصر</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              title="تسجيل الخروج"
+              className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-700 transition-colors"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">قفل</span>
+            </button>
           </div>
 
-          <div className="flex items-center gap-2">
-            {isAuthenticated && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab(13)}
-                  className="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-950/60 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-900/60 transition-all font-bold"
-                  title="الوضع الحقيقي المباشر نشط"
-                >
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="hidden sm:inline">الوضع الحقيقي بالكامل (Live Mode)</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleWipeAllTestItems}
-                  title="مسح وتنظيف كافة العناصر التجريبية"
-                  className="flex items-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs text-rose-400 hover:bg-rose-500/20 transition-colors"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">مسح وتنظيف العناصر</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  title="تسجيل الخروج"
-                  className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-700 transition-colors"
-                >
-                  <Lock className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">قفل اللوحة</span>
-                </button>
-              </>
-            )}
+          <div>
             <button
+              type="button"
               onClick={onClose}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors cursor-pointer"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4.5 w-4.5" />
             </button>
           </div>
         </div>
 
-        {/* PASSWORD PROTECTED LOGIN SCREEN IF NOT AUTHENTICATED */}
-        {!isAuthenticated ? (
-          <div className="flex-1 flex items-center justify-center p-6 bg-slate-950">
-            <div className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900/90 p-8 shadow-2xl space-y-6 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-500/20 text-blue-400 mx-auto border border-blue-500/30">
-                <Lock className="w-8 h-8" />
-              </div>
-
-              <div>
-                <h3 className="text-xl font-black text-white">تسجيل دخول المطور ولوحة التحكم</h3>
-                <p className="text-xs text-slate-400 mt-1">
-                  أدخل بريدك الإلكتروني المعتمد في Firebase ورمز المرور المكون من 7 أرقام
-                </p>
-              </div>
-
-              <form onSubmit={handleLogin} className="space-y-4 text-right">
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
-                    بريد المطور (Developer Email):
-                  </label>
-                  <input
-                    type="email"
-                    value={emailInput}
-                    onChange={(e) => {
-                      setEmailInput(e.target.value);
-                      setPasswordError(null);
-                    }}
-                    placeholder="roohpro2@gmail.com..."
-                    className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2.5 text-xs text-white focus:border-blue-500 focus:outline-none font-mono"
-                    dir="ltr"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
-                    رمز المرور أو الرمز المكون من 7 أرقام (7-Digit PIN / Password):
-                  </label>
-                  <input
-                    type="password"
-                    value={passwordInput}
-                    onChange={(e) => {
-                      setPasswordInput(e.target.value);
-                      setPasswordError(null);
-                    }}
-                    placeholder="أدخل الرمز المكون من 7 أرقام أو كلمة مرور الأدمن..."
-                    className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-blue-500 focus:outline-none font-mono"
-                    dir="ltr"
-                    autoFocus
-                  />
-                </div>
-
-                {passwordError && (
-                  <div className="flex items-center gap-2 rounded-xl bg-red-950/80 border border-red-500/40 p-3 text-xs text-red-300 text-right">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
-                    <span>{passwordError}</span>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-4 py-3 text-sm font-black text-white transition-all shadow-lg active:scale-95 border-2 border-yellow-400 cursor-pointer"
-                >
-                  <Unlock className="w-4 h-4 text-yellow-300" />
-                  <span>تأكيد ومصادقة الدخول السحابي (Firebase Login)</span>
-                </button>
-              </form>
-
-              <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-                <div className="flex items-center gap-1.5 text-amber-400 font-mono">
-                  <Flame className="w-3.5 h-3.5" />
-                  <span>Firebase Rules Active</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPasswordInput('admin123');
-                    setIsAuthenticated(true);
-                    localStorage.setItem('rooh_admin_authenticated', 'true');
-                  }}
-                  className="font-mono text-blue-400 underline hover:text-blue-300"
-                >
-                  دخول سريع (Dev Bypass)
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* AUTHENTICATED DASHBOARD BODY WITH SIDEBAR NAVIGATION (7 Pages + Tools) */
-          <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+        {/* AUTHENTICATED DASHBOARD BODY WITH SIDEBAR NAVIGATION (7 Pages + Tools) */}
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
             {/* Sidebar Navigation */}
             <aside className="w-full md:w-64 border-b md:border-b-0 md:border-l border-slate-800 bg-slate-900/60 p-3 flex md:flex-col overflow-x-auto md:overflow-y-auto gap-1.5 shrink-0">
               <span className="text-[11px] font-bold text-slate-500 px-3 py-1 hidden md:block">
@@ -1201,12 +1215,11 @@ export const DevControlPanel: React.FC<DevControlPanelProps> = ({
               {activeTab === 12 && <SitemapManagerView />}
             </div>
           </div>
-        )}
 
         {/* MODAL: ADD / EDIT ITEM */}
         {isAddingItem && (
-          <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm">
-            <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-slate-700 bg-slate-900 p-6 text-slate-100 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm">
+            <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-slate-700 bg-slate-900 p-6 text-slate-100 shadow-2xl space-y-4 max-h-[calc(90vh-50px)] overflow-y-auto transform -translate-y-[50px] sm:-translate-y-[50px]">
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h4 className="font-bold text-base text-white">
                   {editingItemId ? 'تعديل عنصر وبرومبت' : `إضافة عنصر جديد لبوابة ${activeTab}`}
@@ -1336,8 +1349,8 @@ export const DevControlPanel: React.FC<DevControlPanelProps> = ({
 
         {/* MODAL: ADD AD */}
         {isAddingAd && (
-          <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm">
-            <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-slate-700 bg-slate-900 p-6 text-slate-100 shadow-2xl space-y-4">
+          <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm">
+            <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-slate-700 bg-slate-900 p-6 text-slate-100 shadow-2xl space-y-4 max-h-[calc(90vh-50px)] overflow-y-auto transform -translate-y-[50px] sm:-translate-y-[50px]">
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h4 className="font-bold text-base text-white">إضافة راعي / إعلان مدمج 350×350</h4>
                 <button

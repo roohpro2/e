@@ -44,6 +44,7 @@ export interface MediaItem {
   analysisData?: AnalysisData;
   views?: number;
   copies?: number;
+  likes?: number;
   authorName?: string;
   authorId?: string;
   authorAvatar?: string;

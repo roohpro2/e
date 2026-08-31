@@ -25,6 +25,17 @@ export const AuthModal: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  React.useEffect(() => {
+    if (isAuthModalOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isAuthModalOpen]);
+
   if (!isAuthModalOpen) return null;
 
   const handleGoogleSignIn = async () => {
@@ -60,10 +71,10 @@ export const AuthModal: React.FC = () => {
   return (
     <div
       id="firebase-auth-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/85 p-4 backdrop-blur-md animate-in fade-in duration-200"
       dir="rtl"
     >
-      <div className="relative flex w-full max-w-md flex-col overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 text-slate-100 shadow-2xl shadow-blue-500/10">
+      <div className="relative flex w-full max-w-md max-h-[calc(90vh-50px)] overflow-y-auto flex-col rounded-3xl border border-slate-800 bg-slate-900 text-slate-100 shadow-2xl shadow-blue-500/10 transform -translate-y-[50px] sm:-translate-y-[50px]">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-800 bg-slate-950/70 px-6 py-4">
           <div className="flex items-center gap-2.5">

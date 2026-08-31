@@ -329,12 +329,14 @@ export default function App() {
           </div>
         </div>
 
-        {/* Reserved Bottom Banner Clearance Area */}
-        <div
-          id="bottom-ad-banner-slot"
-          className="mx-auto mt-4 max-w-4xl min-h-[50px] flex items-center justify-center text-center px-4"
-          aria-hidden="true"
-        />
+        {/* Reserved Bottom Banner Clearance Area (Hidden when Dev Panel is active) */}
+        {!devPanelOpen && (
+          <div
+            id="bottom-ad-banner-slot"
+            className="mx-auto mt-4 max-w-4xl min-h-[50px] flex items-center justify-center text-center px-4"
+            aria-hidden="true"
+          />
+        )}
       </footer>
 
       {/* 4 Distinct Independent Colored Modals */}

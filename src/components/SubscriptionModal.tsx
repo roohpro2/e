@@ -15,6 +15,17 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, on
   const [flashIdeas, setFlashIdeas] = useState(true);
 
   useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       setNotificationPermission(Notification.permission);
       if (Notification.permission === 'granted') {
@@ -72,9 +83,9 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, on
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className="relative w-full max-w-lg overflow-hidden rounded-3xl border-2 border-yellow-400 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.35),0_0_30px_rgba(250,204,21,0.3)] animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-lg max-h-[calc(90vh-50px)] overflow-y-auto rounded-3xl border-2 border-yellow-400 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.35),0_0_30px_rgba(250,204,21,0.3)] animate-in zoom-in-95 duration-200 transform -translate-y-[50px] sm:-translate-y-[50px]"
         dir="rtl"
       >
         {/* Top Accent Bar */}

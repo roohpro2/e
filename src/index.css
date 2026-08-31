@@ -537,3 +537,20 @@
   box-shadow: 0 1px 0 #1E3A8A, 0 2px 4px rgba(37, 99, 235, 0.25);
 }
 
+/* Global Ad Suppression & Clearance when Dev Panel or Modals are Open */
+body.dev-panel-open #bottom-ad-banner-slot,
+body.dev-panel-open [id*="profitableratecpm"],
+body.dev-panel-open [id*="container-"],
+body.dev-panel-open [class*="profitableratecpm"],
+body.modal-open #bottom-ad-banner-slot,
+body.modal-open [id*="profitableratecpm"],
+body.modal-open [id*="container-"],
+body.modal-open [class*="profitableratecpm"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+

@@ -20,7 +20,10 @@ import {
   Lock,
   Share2,
   AlertCircle,
-  Zap
+  Zap,
+  Star,
+  Heart,
+  Film
 } from 'lucide-react';
 import { MediaItem, AdBanner } from '../types';
 import { AdDisplay } from './AdDisplay';
@@ -30,6 +33,7 @@ import { PromptMutatorModal } from './PromptMutatorModal';
 import { storage } from '../services/storage';
 import { adManager } from '../services/adManager';
 import { getNumericCode, getItemFullUrl } from '../utils/idHelper';
+import confetti from 'canvas-confetti';
 
 interface ItemDetailPageProps {
   item: MediaItem;
@@ -55,11 +59,41 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
   const [isResetToast, setIsResetToast] = useState(false);
   const [isMutatorOpen, setIsMutatorOpen] = useState(false);
 
+  const [likesCount, setLikesCount] = useState<number>(item.likes || item.views ? Math.floor((item.views || 20) * 0.4) + 5 : 18);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [userRating, setUserRating] = useState<number>(5);
+  const [hasRated, setHasRated] = useState(false);
+
   const [copyRestrictionWarning, setCopyRestrictionWarning] = useState<string | null>(null);
 
   const numericCode = getNumericCode(item);
   const fullUrl = getItemFullUrl(item);
   const devSettings = storage.getDevSettings();
+
+  // Handler to Navigate to Portal 3 with this video's motion prompt pre-filled
+  const handleCreateSimilarVideo = () => {
+    try {
+      sessionStorage.setItem('rooh_video_prefill_prompt', editablePrompt || item.prompt);
+    } catch (_) {}
+    onSelectWindow(3);
+  };
+
+  const handleToggleLike = () => {
+    if (!hasLiked) {
+      setLikesCount((prev) => prev + 1);
+      setHasLiked(true);
+      confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 } });
+    } else {
+      setLikesCount((prev) => Math.max(0, prev - 1));
+      setHasLiked(false);
+    }
+  };
+
+  const handleRate = (rating: number) => {
+    setUserRating(rating);
+    setHasRated(true);
+    confetti({ particleCount: 25, spread: 40 });
+  };
 
   // Sync state if item changes
   useEffect(() => {
@@ -281,6 +315,53 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
                 <span>•</span>
                 <span>{item.copies || 0} مرات نسخ</span>
               </div>
+            </div>
+
+            {/* Interactive Ratings, Likes & Create Similar Video Action */}
+            <div className="mt-3.5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 bg-slate-50/80 p-3 rounded-xl border border-slate-200">
+              <div className="flex items-center gap-3">
+                {/* 5-Star Rating */}
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => handleRate(star)}
+                      className="text-amber-400 hover:scale-125 transition-transform cursor-pointer"
+                      title={`تقييم ${star} نجوم`}
+                    >
+                      <Star className={`w-4 h-4 ${star <= userRating ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`} />
+                    </button>
+                  ))}
+                  <span className="text-[11px] font-bold text-slate-700 mr-1">
+                    {userRating}.0 {hasRated ? '(تم تقييمك!)' : ''}
+                  </span>
+                </div>
+
+                {/* Like Button */}
+                <button
+                  type="button"
+                  onClick={handleToggleLike}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold transition-all active:scale-90 cursor-pointer border ${
+                    hasLiked
+                      ? 'bg-rose-50 border-rose-300 text-rose-600'
+                      : 'bg-white border-slate-300 text-slate-700 hover:border-rose-400'
+                  }`}
+                >
+                  <Heart className={`w-3.5 h-3.5 ${hasLiked ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`} />
+                  <span>{likesCount}</span>
+                </button>
+              </div>
+
+              {/* Create Similar Video CTA */}
+              <button
+                type="button"
+                onClick={handleCreateSimilarVideo}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-black text-xs shadow-md border border-yellow-400 active:scale-95 transition-all cursor-pointer"
+              >
+                <Zap className="w-4 h-4 text-yellow-300 animate-pulse" />
+                <span>⚡ إنشاء فيديو شبيه به (Create Similar Video)</span>
+              </button>
             </div>
           </div>
 
@@ -539,6 +620,43 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
           <div className="mt-2.5 flex items-center justify-between text-xs text-slate-600">
             <span className="font-bold text-blue-600">{item.model}</span>
             <span className="font-medium text-slate-500">{item.views || 100} مشاهدة</span>
+          </div>
+
+          {/* Mobile Ratings, Likes & Create Similar Video Action */}
+          <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2.5">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => handleRate(star)}
+                    className="text-amber-400 cursor-pointer"
+                  >
+                    <Star className={`w-3.5 h-3.5 ${star <= userRating ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`} />
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={handleToggleLike}
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border ${
+                  hasLiked ? 'bg-rose-50 border-rose-300 text-rose-600' : 'bg-slate-50 border-slate-200 text-slate-600'
+                }`}
+              >
+                <Heart className={`w-3 h-3 ${hasLiked ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`} />
+                <span>{likesCount}</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleCreateSimilarVideo}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 text-white font-bold text-[10px] shadow-sm border border-yellow-400 active:scale-95"
+            >
+              <Zap className="w-3 h-3 text-yellow-300 animate-pulse" />
+              <span>إنشاء فيديو شبيه به</span>
+            </button>
           </div>
         </div>
 
