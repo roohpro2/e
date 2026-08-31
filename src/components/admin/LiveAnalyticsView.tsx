@@ -53,8 +53,8 @@ const INITIAL_PORTALS_DATA: Record<WindowId, { name: string; arabicName: string;
     gradient: 'from-amber-600 to-red-600'
   },
   4: {
-    name: 'Vector & Logos',
-    arabicName: 'بوابة 4: الفيكتور والشعارات',
+    name: 'Voice & Prompts',
+    arabicName: 'بوابة 4: التفاعل الصوتي وتوليد الصور',
     baseUsers: 74,
     color: 'border-emerald-500 text-emerald-400 bg-emerald-500/10',
     gradient: 'from-emerald-600 to-teal-600'

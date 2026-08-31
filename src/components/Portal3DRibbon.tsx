@@ -3,6 +3,7 @@ import {
   Camera,
   Wand2,
   Video,
+  Mic,
   Award,
   ShoppingBag,
   ScanEye,
@@ -24,7 +25,7 @@ const portalIcons: Record<number, React.ReactNode> = {
   1: <Camera className="w-4 h-4" />,
   2: <Wand2 className="w-4 h-4" />,
   3: <Video className="w-4 h-4" />,
-  4: <Award className="w-4 h-4" />,
+  4: <Mic className="w-4 h-4" />,
   5: <ShoppingBag className="w-4 h-4" />,
   6: <ScanEye className="w-4 h-4" />
 };
@@ -75,15 +76,15 @@ const portalShortNames: Record<number, {
     tagColor: 'text-red-700'
   },
   4: {
-    title: 'بوابة الشعارات والهويات',
-    subtitle: 'Vector & Brand Marks',
-    badgeBg: 'bg-blue-700',
+    title: 'بوابة التفاعل الصوتي والصور',
+    subtitle: 'Voice-to-Prompt & Image',
+    badgeBg: 'bg-emerald-600',
     badgeText: 'text-white',
-    accentBorder: 'border-blue-400 hover:border-blue-600',
-    cardBg: 'from-sky-50 via-white to-indigo-50',
-    iconBg: 'bg-blue-700',
+    accentBorder: 'border-emerald-500 hover:border-emerald-600',
+    cardBg: 'from-emerald-50 via-white to-teal-50',
+    iconBg: 'bg-emerald-600',
     iconColor: '#FFFFFF',
-    tagColor: 'text-blue-800'
+    tagColor: 'text-emerald-800'
   },
   5: {
     title: 'بوابة الإعلانات والموك أب',

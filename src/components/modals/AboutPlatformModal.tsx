@@ -83,7 +83,7 @@ export const AboutPlatformModal: React.FC<AboutPlatformModalProps> = ({ isOpen, 
                 { id: 1, name: 'بوابة 1: الصور الواقعية', code: '101+', tag: 'Photorealistic' },
                 { id: 2, name: 'بوابة 2: الفن الرقمي والأنمي', code: '201+', tag: '3D & Anime' },
                 { id: 3, name: 'بوابة 3: الفيديو السينمائي 4K', code: '301+', tag: 'Cinematic 4K' },
-                { id: 4, name: 'بوابة 4: الشعارات والهوية البصرية', code: '401+', tag: 'Logos & Brand' },
+                { id: 4, name: 'بوابة 4: التفاعل الصوتي وتوليد الصور', code: '401+', tag: 'Voice AI Studio' },
                 { id: 5, name: 'بوابة 5: الإعلانات التجارية الموجهة', code: '501+', tag: 'Commercial Ads' },
                 { id: 6, name: 'بوابة 6: الهندسة العكسية وتحليل الصور', code: '601+', tag: 'Vision AI' }
               ].map((p) => (

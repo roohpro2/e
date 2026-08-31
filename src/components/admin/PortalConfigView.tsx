@@ -65,13 +65,13 @@ const PORTAL_METADATA: Record<WindowId, {
     defaultModel: 'Runway Gen-3 / Sora / Kling'
   },
   4: {
-    name: 'Portal 4: Vector & Logos',
-    arabicName: 'بوابة 4: الفيكتور والشعارات والأيقونات',
-    defaultProvider: 'lexica',
+    name: 'Portal 4: Voice-to-Image & Prompts',
+    arabicName: 'بوابة 4: التفاعل الصوتي وتوليد الصور بالصوت',
+    defaultProvider: 'gemini',
     iconColor: 'text-emerald-400',
     themeGradient: 'from-emerald-600 to-teal-700',
-    description: 'تصميم الشعارات النظيفة والرسومات الموجهة المعزولة والأيقونات عالية الوضوح SVG',
-    defaultModel: 'VectorMaster Studio'
+    description: 'تحويل الصوت الطبيعي إلى برومبتات وصور دقيقة مع التوليد الفوري والاستماع الصوتي',
+    defaultModel: 'Voice Neural Studio'
   },
   5: {
     name: 'Portal 5: Commercial & Ads',
