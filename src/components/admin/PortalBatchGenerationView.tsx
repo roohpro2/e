@@ -151,6 +151,12 @@ export const PortalBatchGenerationView: React.FC<PortalBatchGenerationViewProps>
           <p className="text-xs text-slate-300 leading-relaxed max-w-3xl">
             يتم توليد 5 تصميمات/برومبتات/فيديوهات لكل بوابة ومزامنتها تلقائياً مع <strong>Cloudflare R2</strong>، وتوضع في قائمة <em>"المسودات بانتظار موافقة المطور"</em> لتقوم بمراجعتها والموافقة عليها قبل إتاحتها للمستخدمين.
           </p>
+          <div className="flex items-center gap-2 pt-1">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-[11px] font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              🛡️ نظام منع التكرار مفعل: لا تكرار لأي صور أو برومبتات شبيهة بالسابقة نهائياً
+            </span>
+          </div>
         </div>
 
         <button

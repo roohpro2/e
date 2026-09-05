@@ -2,6 +2,10 @@ import { WindowId, MediaItem, DevSettings } from '../types';
 import { storage } from './storage';
 import { userCreationsService } from './userCreationsService';
 import { firebaseService, UserProfile } from './firebaseConfig';
+import {
+  ANTI_DUPLICATION_SYSTEM_DIRECTIVE,
+  generateUniqueRandomSeed
+} from './noveltyEngine';
 
 export interface PromptVariant {
   id: string;
@@ -158,8 +162,10 @@ export const promptExpansionEngine = {
     const profile = PORTAL_TECHNICAL_PROFILES[windowId] || PORTAL_TECHNICAL_PROFILES[1];
 
     const systemPrompt = `You are the Lead AI Prompt Engineer for "Rooh Pro AI" Portal ${windowId} (${profile.nameAr}).
+${ANTI_DUPLICATION_SYSTEM_DIRECTIVE}
+
 Your mission: Take the user seed prompt: "${cleanSeed}" ${customStyle ? `with style modifier: "${customStyle}"` : ''}
-And expand it into exactly ${count} highly distinct, professional, master-level prompt variations tailored specifically for ${profile.defaultEngine}.
+And expand it into exactly ${count} highly distinct, original, professional, master-level prompt variations tailored specifically for ${profile.defaultEngine}. Every variation must be 100% unique in concept and composition.
 
 Portal Context: ${profile.systemContext}
 
@@ -235,7 +241,11 @@ You MUST respond strictly in valid JSON format matching this schema without mark
 
     const variants: PromptVariant[] = (generatedRawJson.variants || []).slice(0, count).map((v: any, index: number) => {
       const variantId = `var-w${windowId}-${Date.now()}-${index + 1}`;
-      const previewUrl = v.previewUrl || assetPool[index % assetPool.length];
+      const uniqueSeed = generateUniqueRandomSeed() + index * 1000;
+      const cleanPromptForImage = encodeURIComponent((v.prompt || cleanSeed).slice(0, 200));
+      const previewUrl = v.previewUrl && !v.previewUrl.includes('unsplash.com/photo-1618005182384') && !v.previewUrl.includes('unsplash.com/photo-1534528741775')
+        ? v.previewUrl
+        : `https://image.pollinations.ai/prompt/${cleanPromptForImage}?width=1024&height=1024&seed=${uniqueSeed}&nologo=true&enhance=true`;
       const firestoreDocId = `doc-ai-gen-${windowId}-${Date.now()}-${index + 1}`;
 
       return {
@@ -553,7 +563,7 @@ You MUST respond strictly in valid JSON format matching this schema without mark
         aspectRatio: profile.aspectRatio,
         tags: [`بوابة ${windowId}`, 'Rooh Pro AI', b.type, '8K'],
         parameters: { cfgScale: b.cfg, steps: 35, seed: Math.floor(1000000 + Math.random() * 9000000) },
-        previewUrl: assetPool[i % assetPool.length]
+        previewUrl: `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt.slice(0, 200))}?width=1024&height=1024&seed=${generateUniqueRandomSeed() + i * 2000}&nologo=true&enhance=true`
       };
     });
 

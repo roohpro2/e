@@ -3,7 +3,7 @@ import { Search, ArrowLeft, X, HelpCircle, Sparkles, Wand2, Lightbulb, Check, Us
 import { MediaItem, WindowId } from '../types';
 import { getNumericCode } from '../utils/idHelper';
 import { useAuth } from '../context/AuthContext';
-import { UserProfileModal } from './auth/UserProfileModal';
+import { UserProfileModal } from './UserProfileModal';
 
 interface SmartSearchBarProps {
   items: MediaItem[];
@@ -170,34 +170,43 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
           </div>
         </form>
 
-        {/* Circular Avatar Next to Search Bar for User Management & Quota */}
+        {/* User Profile Avatar Button (Opens Unified Profile & Coin Balance) */}
         <button
           type="button"
           id="search-avatar-profile-btn"
           onClick={() => setIsProfileModalOpen(true)}
-          title="إدارة الحساب ومحفظة المحاولات (مجاني 100%)"
+          title={isAuthenticated ? `الملف الشخصي: ${user?.displayName || user?.email}` : 'الملف الشخصي وتسجيل الدخول'}
           className="relative group flex items-center justify-center rounded-2xl p-1 bg-white border-2 border-yellow-400 shadow-[0_4px_12px_rgba(250,204,21,0.35)] hover:shadow-[0_0_20px_rgba(250,204,21,0.6)] hover:scale-105 active:scale-95 transition-all duration-200 shrink-0 cursor-pointer"
         >
           <div className="relative h-10 w-10 sm:h-11 sm:w-11 rounded-xl overflow-hidden bg-slate-900 border border-amber-300">
-            <img
-              src={
-                user?.photoURL ||
-                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'
-              }
-              alt={user?.displayName || 'المستخدم'}
-              referrerPolicy="no-referrer"
-              className="h-full w-full object-cover"
-            />
+            {user?.photoURL ? (
+              <img
+                src={user.photoURL}
+                alt={user?.displayName || 'المستخدم'}
+                referrerPolicy="no-referrer"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-indigo-700 text-white font-black text-sm">
+                {isAuthenticated ? (
+                  user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'
+                ) : (
+                  <User className="w-5 h-5 text-white/90" />
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Remaining Daily Attempts Counter Pill */}
-          <span className="absolute -bottom-1 -right-1 flex h-5 min-w-[20px] px-1 items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black text-[10px] shadow-md border border-white">
-            {isAuthenticated ? '5' : guestAttemptsRemaining}
-          </span>
+          {/* Online / Auth status indicator dot */}
+          <span
+            className={`absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white shadow-xs ${
+              isAuthenticated ? 'bg-emerald-500' : 'bg-amber-400'
+            }`}
+          />
         </button>
       </div>
 
-      {/* Profile & Account Management Modal */}
+      {/* User Unified Profile & Central Cloudflare D1 Coin Wallet Modal */}
       <UserProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}

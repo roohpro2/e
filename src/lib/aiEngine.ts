@@ -12,6 +12,13 @@
  * - Reverse Vision & Audio Voice Synthesis
  */
 
+import {
+  checkSimilarityWithExisting,
+  novelizePrompt,
+  generateUniqueRandomSeed,
+  ANTI_DUPLICATION_SYSTEM_DIRECTIVE
+} from '../services/noveltyEngine';
+
 export interface AIServiceKeys {
   geminiKey: string;
   groqKey: string;
@@ -173,11 +180,13 @@ export async function optimizePromptWithFallback(
   const keys = getActiveAIKeys();
 
   const systemInstruction = `You are the master Prompt Engineering Engine for Rooh Pro AI (روح برو).
-Transform the user's idea or query into a masterpiece text-to-image/video prompt.
+${ANTI_DUPLICATION_SYSTEM_DIRECTIVE}
+
+Transform the user's idea or query into an entirely original, non-repetitive masterpiece text-to-image/video prompt.
 Format the output as a valid JSON object matching this structure:
 {
   "expandedPrompt": "Detailed photographic/artistic prompt in English with camera, lighting, renderer tags, and --ar ${aspectRatio}",
-  "negativePrompt": "blurry, low quality, bad anatomy, deformed, watermark, oversaturated",
+  "negativePrompt": "blurry, low quality, bad anatomy, deformed, watermark, oversaturated, duplicate",
   "styleKeywords": ["keyword1", "keyword2", "keyword3"],
   "suggestedAspectRatio": "${aspectRatio}",
   "cameraSettings": "Hasselblad 85mm f/1.4, cinematic volumetric lighting"
@@ -300,7 +309,23 @@ export async function generateImageWithFallback(
 ): Promise<ImageGenerationResult> {
   const startTime = performance.now();
   const keys = getActiveAIKeys();
-  const targetSeed = seed || Math.floor(Math.random() * 1000000);
+
+  // Enforce novelty: strictly prevent generating images similar to items in Developer Control Panel
+  let effectivePrompt = prompt.trim();
+  let targetSeed = seed;
+
+  const similarity = checkSimilarityWithExisting('', effectivePrompt);
+  if (similarity.isSimilar) {
+    const novelized = novelizePrompt(effectivePrompt);
+    effectivePrompt = novelized.novelPrompt;
+    if (!targetSeed) {
+      targetSeed = novelized.uniqueSeed;
+    }
+  }
+
+  if (!targetSeed) {
+    targetSeed = generateUniqueRandomSeed();
+  }
 
   // 1. Try Hugging Face Inference Primary
   if (keys.huggingFaceKey && keys.huggingFaceKey.startsWith('hf_')) {
@@ -314,7 +339,7 @@ export async function generateImageWithFallback(
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            inputs: prompt,
+            inputs: effectivePrompt,
             parameters: {
               width: Math.min(width, 1024),
               height: Math.min(height, 1024),
@@ -330,7 +355,7 @@ export async function generateImageWithFallback(
         const latencyMs = Math.round(performance.now() - startTime);
         return {
           imageUrl,
-          prompt,
+          prompt: effectivePrompt,
           providerUsed: 'huggingface',
           model: 'FLUX.1-schnell',
           latencyMs
@@ -341,14 +366,14 @@ export async function generateImageWithFallback(
     }
   }
 
-  // 2. Pollinations.ai Fallback
-  const encodedPrompt = encodeURIComponent(prompt.trim());
-  const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${targetSeed}&nologo=true&enhance=true`;
+  // 2. Pollinations.ai Fallback with cache-busting timestamp and unique seed
+  const encodedPrompt = encodeURIComponent(effectivePrompt);
+  const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${targetSeed}&nologo=true&enhance=true&t=${Date.now()}`;
   const latencyMs = Math.round(performance.now() - startTime);
 
   return {
     imageUrl: pollinationsUrl,
-    prompt,
+    prompt: effectivePrompt,
     providerUsed: 'pollinations',
     model: 'Pollinations-Flux-Turbo',
     latencyMs
