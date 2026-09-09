@@ -5,6 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>roohpro Ai المساعد الذكي</title>
     <meta name="description" content="منصة متطورة تضم 6 بوابات للأوامر والصور والفيديوهات والهندسة البصرية المعكوسة، مع دعم ربط مفتاح Gemini API الشخصي ومحفظة المبدع ومتابعة الاستهلاك اليومي." />
+    <meta name="theme-color" content="#020617" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="roohpro Ai" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icons/icon-512.png" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+    <!-- الالتقاط الفوري المسبق لحدث التثبيت وتسجيل Service Worker -->
+    <script>
+      window.deferredPrompt = null;
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        window.deferredPrompt = e;
+        window.dispatchEvent(new CustomEvent('app_install_prompt_ready'));
+      });
+      window.addEventListener('appinstalled', function() {
+        window.deferredPrompt = null;
+        try {
+          localStorage.setItem('app_installed_success', 'true');
+        } catch (e) {}
+        window.dispatchEvent(new CustomEvent('app_install_completed'));
+      });
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').catch(function() {});
+        });
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://n6wxm.com" crossorigin>

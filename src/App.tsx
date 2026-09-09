@@ -20,6 +20,7 @@ import { PrivacyPolicyModal } from './components/modals/PrivacyPolicyModal';
 import { ReportIssueModal } from './components/modals/ReportIssueModal';
 import { TermsOfServiceModal } from './components/modals/TermsOfServiceModal';
 import { AboutPlatformModal } from './components/modals/AboutPlatformModal';
+import { InstallBanner } from './components/InstallBanner';
 
 export default function App() {
   const [items, setItems] = useState<MediaItem[]>(() => storage.getItems());
@@ -375,6 +376,9 @@ export default function App() {
 
       {/* Global Authentication Modal */}
       <AuthModal />
+
+      {/* Triple-Tier Universal PWA System (Handles iOS Safari Guide & System Prompts) */}
+      <InstallBanner />
     </div>
   );
 }

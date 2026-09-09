@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Search, ArrowLeft, X, HelpCircle, Sparkles, Wand2, Lightbulb, Check, User, Flame } from 'lucide-react';
+import { Search, ArrowLeft, X, HelpCircle, Sparkles, Wand2, Lightbulb, Check, User, Flame, Download } from 'lucide-react';
 import { MediaItem, WindowId } from '../types';
 import { getNumericCode } from '../utils/idHelper';
 import { useAuth } from '../context/AuthContext';
 import { UserProfileModal } from './UserProfileModal';
+import { triggerUniversalAppInstall } from '../utils/installApp';
 
 interface SmartSearchBarProps {
   items: MediaItem[];
@@ -22,6 +23,36 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [isInstalling, setIsInstalling] = useState(false);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as any).standalone === true;
+      if (isStandalone || localStorage.getItem('app_installed_success') === 'true') {
+        setIsInstalled(true);
+      }
+    }
+
+    const handleInstalled = () => {
+      setIsInstalled(true);
+    };
+    window.addEventListener('app_install_completed', handleInstalled);
+    return () => {
+      window.removeEventListener('app_install_completed', handleInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    setIsInstalling(true);
+    try {
+      await triggerUniversalAppInstall();
+    } finally {
+      setTimeout(() => setIsInstalling(false), 1200);
+    }
+  };
 
   React.useEffect(() => {
     if (isHelpModalOpen) {
@@ -95,6 +126,43 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
   return (
     <div className="w-full relative z-20">
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* Universal PWA / Native Download & Install App Button (In the empty side, opposite to 'انتقل') */}
+        <button
+          type="button"
+          id="search-install-app-btn"
+          onClick={handleInstallClick}
+          title={isInstalled ? 'التطبيق مثبت كبرنامج مستقل على جهازك' : 'تحميل وتثبيت التطبيق بنقرة واحدة (Android / Desktop / iPhone)'}
+          className="relative group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 h-10 sm:h-11 rounded-2xl bg-gradient-to-b from-cyan-400 via-sky-500 to-blue-600 border border-cyan-200 border-b-[3px] border-b-blue-800 text-white shadow-[0_4px_12px_rgba(6,182,212,0.4),0_0_12px_rgba(14,165,233,0.3)] hover:shadow-[0_6px_20px_rgba(6,182,212,0.65)] hover:brightness-110 active:translate-y-[2px] active:border-b-blue-700 active:shadow-xs transition-all duration-150 shrink-0 cursor-pointer select-none"
+        >
+          {/* Subtle light sweep reflection */}
+          <span className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
+            <span className="absolute -inset-full bg-gradient-to-r from-transparent via-white/25 to-transparent -rotate-45 group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
+          </span>
+
+          <div className="relative flex items-center justify-center w-6 h-6 rounded-lg bg-white/20 shadow-inner group-hover:scale-110 transition-transform">
+            <Download className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-white drop-shadow-xs ${isInstalling ? 'animate-bounce' : 'group-hover:translate-y-0.5 transition-transform'}`} />
+          </div>
+
+          <div className="flex flex-col text-right leading-none">
+            <span className="text-[11px] sm:text-xs font-black drop-shadow-xs flex items-center gap-1">
+              <span className="sm:hidden">تحميل</span>
+              <span className="hidden sm:inline">تحميل التطبيق</span>
+              <Sparkles className="w-3 h-3 text-yellow-300 animate-pulse hidden sm:inline" />
+            </span>
+            <span className="text-[9px] text-cyan-100 font-bold hidden sm:inline pt-0.5">
+              {isInstalled ? 'التطبيق مثبت ✓' : 'تثبيت فوري PWA'}
+            </span>
+          </div>
+
+          {/* Glowing pulse indicator dot */}
+          {!isInstalled && (
+            <span className="absolute -top-1 -right-1 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-300 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-400 border border-white"></span>
+            </span>
+          )}
+        </button>
+
         {/* Main Search Input Form */}
         <form onSubmit={handleSearch} className="relative flex-1">
           <div
