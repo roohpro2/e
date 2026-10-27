@@ -282,22 +282,20 @@
   animation: neonPulse6 3s infinite ease-in-out;
 }
 
-/* 3D Dynamic Push Button for Entering Windows / Portals ("بدء") */
+/* 3D Dynamic Push Button for Entering Windows / Portals (Arrow Only) */
 .btn-3d-start {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.4rem 1.15rem;
-  font-size: 0.85rem;
-  font-weight: 900;
-  color: #ffffff;
-  border-radius: 0.75rem;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border-radius: 0.65rem;
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   transform: translateY(0);
   cursor: pointer;
   user-select: none;
-  letter-spacing: 0.05em;
   overflow: hidden;
 }
 
@@ -409,21 +407,21 @@
   box-shadow: 0 1px 0 #0F172A, 0 2px 4px rgba(100, 116, 139, 0.25);
 }
 
-/* Premium 3D Subscribe Button (Golden Amber Luxury Style) */
+/* Premium 3D Subscribe Button (Golden Amber Compact Style) */
 .btn-3d-subscribe {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  padding: 0.45rem 1.25rem;
-  font-size: 0.875rem;
+  gap: 0.25rem;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.75rem;
   font-weight: 900;
   color: #78350F;
-  border-radius: 0.85rem;
+  border-radius: 0.75rem;
   background: linear-gradient(180deg, #FDE68A 0%, #F59E0B 100%);
   border: 1.5px solid #FEF3C7;
-  box-shadow: 0 4px 0 #B45309, 0 6px 16px rgba(245, 158, 11, 0.45);
+  box-shadow: 0 3px 0 #B45309, 0 4px 10px rgba(245, 158, 11, 0.4);
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   transform: translateY(0);
   cursor: pointer;
@@ -438,35 +436,35 @@
   right: 0;
   height: 45%;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 100%);
-  border-radius: 0.75rem 0.75rem 0 0;
+  border-radius: 0.65rem 0.65rem 0 0;
   pointer-events: none;
 }
 .btn-3d-subscribe:hover {
   background: linear-gradient(180deg, #FEF08A 0%, #D97706 100%);
-  box-shadow: 0 5px 0 #B45309, 0 8px 20px rgba(245, 158, 11, 0.6);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 0 #B45309, 0 6px 14px rgba(245, 158, 11, 0.55);
+  transform: translateY(-1.5px);
   color: #451A03;
 }
 .btn-3d-subscribe:active {
-  transform: translateY(3px);
+  transform: translateY(2px);
   box-shadow: 0 1px 0 #B45309, 0 2px 4px rgba(245, 158, 11, 0.3);
 }
 
-/* Premium 3D Subscribed State Button (Emerald Neon Active Style) */
+/* Premium 3D Subscribed State Button (Emerald Neon Compact Style) */
 .btn-3d-subscribed {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  padding: 0.45rem 1.25rem;
-  font-size: 0.875rem;
+  gap: 0.25rem;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.75rem;
   font-weight: 900;
   color: #064E3B;
-  border-radius: 0.85rem;
+  border-radius: 0.75rem;
   background: linear-gradient(180deg, #A7F3D0 0%, #10B981 100%);
   border: 1.5px solid #D1FAE5;
-  box-shadow: 0 4px 0 #047857, 0 0 16px rgba(16, 185, 129, 0.55);
+  box-shadow: 0 3px 0 #047857, 0 0 12px rgba(16, 185, 129, 0.5);
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   transform: translateY(0);
   cursor: pointer;
@@ -481,17 +479,17 @@
   right: 0;
   height: 45%;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 100%);
-  border-radius: 0.75rem 0.75rem 0 0;
+  border-radius: 0.65rem 0.65rem 0 0;
   pointer-events: none;
 }
 .btn-3d-subscribed:hover {
   background: linear-gradient(180deg, #6EE7B7 0%, #059669 100%);
-  box-shadow: 0 5px 0 #047857, 0 0 22px rgba(16, 185, 129, 0.75);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 0 #047857, 0 0 16px rgba(16, 185, 129, 0.7);
+  transform: translateY(-1.5px);
   color: #022C22;
 }
 .btn-3d-subscribed:active {
-  transform: translateY(3px);
+  transform: translateY(2px);
   box-shadow: 0 1px 0 #047857, 0 2px 4px rgba(16, 185, 129, 0.3);
 }
 

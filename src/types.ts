@@ -225,6 +225,7 @@ export interface WindowInfo {
   iconName: string;
   codeRange: string;
   themeColor: string;
+  coverImage?: string;
 }
 
 

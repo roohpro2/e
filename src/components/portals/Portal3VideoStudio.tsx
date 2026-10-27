@@ -69,10 +69,10 @@ export const Portal3VideoStudio: React.FC = () => {
 
   // SAMPLE PRESET IMAGES FOR QUICK TESTING
   const SAMPLE_IMAGES = [
-    { title: 'شخصية سينمائية', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80' },
-    { title: 'طبيعة وجبال ضبابية', url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80' },
-    { title: 'مدينة مستقبلية نيون', url: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=800&q=80' },
-    { title: 'سيارة رياضية فائقة', url: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80' }
+    { title: 'مركبة شفق سينمائية', url: '/src/assets/images/portal_cinema_motion_1793071243125.jpg' },
+    { title: 'صقر صحراوي فوتوغرافي', url: '/src/assets/images/portal_falcon_photo_1793071241443.jpg' },
+    { title: 'ساموراي نيون ثلاثي الأبعاد', url: '/src/assets/images/portal_fantasy_samurai_1793071242263.jpg' },
+    { title: 'حديقة زن وطبيعة ضبابية', url: '/src/assets/images/portal_voice_zen_1793071244039.jpg' }
   ];
 
   const CAMERA_PRESETS = [

@@ -51,114 +51,19 @@ export const TOP_NOTIFICATION_SCRIPT_SRC = 'https://pl31050117.profitableratecpm
  * دالة استدعاء إعلان Monetag Vignette / Interstitial الحقيقي مع حماية الحساب ومفتاح الإيقاف وفترة 60 ثانية
  */
 export function showMonetagAd(force: boolean = false): boolean {
-  try {
-    // Check if dev panel or any modal is currently open
-    if (typeof document !== 'undefined') {
-      const isDevPanelActive = document.body.classList.contains('dev-panel-open') || 
-        !!document.getElementById('dev-control-panel-modal');
-      const isModalActive = document.body.classList.contains('modal-open') ||
-        !!document.getElementById('user-key-manager-modal') ||
-        !!document.getElementById('firebase-auth-modal') ||
-        !!document.getElementById('privacy-policy-modal') ||
-        !!document.getElementById('report-issue-modal') ||
-        !!document.getElementById('terms-of-service-modal') ||
-        !!document.getElementById('about-platform-modal');
-
-      if (isDevPanelActive || isModalActive) {
-        return false;
-      }
-    }
-
-    const devSettings = storage.getDevSettings();
-    // مفتاح الإيقاف الشامل: عند إيقاف الإعلانات من لوحة التحكم تتوقف تماماً فوراً
-    if (devSettings.adNetworks && devSettings.adNetworks.globalAdsEnabled === false) {
-      return false;
-    }
-
-    const stats = adManager.getStats();
-    const lastTime = Math.max(
-      stats.lastGlobalAdTimestamp || 0,
-      stats.lastRewardedAdTimestamp || 0,
-      lastAdShownTime || 0
-    );
-    const currentTime = Date.now();
-    const elapsedMs = currentTime - lastTime;
-
-    // فحص الفاصل الزمني الصارم (60 ثانية على الأقل بين كل تشغيل وآخر لحماية الحساب)
-    if (!force && lastTime > 0 && elapsedMs < AD_COOLDOWN_MS) {
-      return false;
-    }
-
-    if (typeof document !== 'undefined') {
-      const existingScript = document.querySelector(`script[src="${MONETAG_VIGNETTE_SRC}"]`);
-      if (!existingScript) {
-        (function(s: HTMLScriptElement){
-          s.dataset.zone = MONETAG_VIGNETTE_ZONE;
-          s.src = MONETAG_VIGNETTE_SRC;
-          const target = [document.documentElement, document.body].filter(Boolean).pop();
-          if (target) {
-            target.appendChild(s);
-          }
-        })(document.createElement('script'));
-      }
-    }
-
-    const win = window as any;
-    if (typeof win[`show_${MONETAG_VIGNETTE_ZONE}`] === 'function') {
-      win[`show_${MONETAG_VIGNETTE_ZONE}`]().catch(() => {});
-    } else if (typeof win.monetag === 'function') {
-      win.monetag();
-    }
-
-    lastAdShownTime = currentTime;
-    adManager.recordAdShown('navigation', 'monetag');
-    return true;
-  } catch (e) {
-    console.warn('Monetag vignette ad trigger error:', e);
-    return false;
-  }
+  // Ads completely disabled upon user request
+  return false;
 }
 
 /**
- * معالج تنفيذ أوامر المستخدم (النسخ / التوليد / المكافأة) مع فحص مهلة الدقيقة ومفتاح الإيقاف
- * - إذا قام المطور بإيقاف الإعلانات: ينفذ الأمر مباشرة دون أي إعلانات أو تأخير
- * - إذا مرت دقيقة أو أكثر: يشغل الإعلان الحقيقي ويجدد الوقت وينفذ الإجراء
- * - إذا لم تمر دقيقة: ينفذ الإجراء مباشرة فوراً دون إعلانات
+ * معالج تنفيذ أوامر المستخدم (النسخ / التوليد / المكافأة) مباشرة دون إعلانات
  */
 export function handleUserActionWithAd(executeDirectAction: () => void, onRewardedAction?: () => void): void {
-  const devSettings = storage.getDevSettings();
-  // مفتاح الإيقاف الشامل: عند إيقاف الإعلانات من لوحة التحكم، نفّذ الأمر فوراً دون إعلانات
-  if (devSettings.adNetworks && devSettings.adNetworks.globalAdsEnabled === false) {
-    executeDirectAction();
-    return;
-  }
-
-  const stats = adManager.getStats();
-  const lastTime = Math.max(
-    stats.lastGlobalAdTimestamp || 0,
-    stats.lastRewardedAdTimestamp || 0,
-    lastAdShownTime || 0
-  );
-  const currentTime = Date.now();
-  const elapsedMs = currentTime - lastTime;
-  
-  // التحقق مما إذا كانت الدقيقة قد مرت أم لا:
-  // إذا كان قد شاهد إعلاناً ولم تمر دقيقة بعد (< 60000ms):
-  if (lastTime > 0 && elapsedMs < AD_COOLDOWN_MS) {
-    // لم تمر دقيقة بعد: نفّذ أمر المستخدم (النسخ/التوليد) مباشرة دون إعلان
-    executeDirectAction();
+  // Execute action immediately without any ads
+  if (onRewardedAction) {
+    onRewardedAction();
   } else {
-    // مرّت دقيقة أو أكثر (أو أول مرة): اعرض الإعلان الحقيقي وجدّد الوقت وسجل المكافأة
-    lastAdShownTime = currentTime;
-    adManager.recordAdShown('rewarded', 'monetag');
-    adManager.rewardUserBonusAttempts(2);
-    showMonetagAd(true);
-    
-    if (onRewardedAction) {
-      onRewardedAction();
-    } else {
-      executeDirectAction();
-    }
+    executeDirectAction();
   }
 }
 

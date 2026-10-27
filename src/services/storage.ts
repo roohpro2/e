@@ -4,7 +4,7 @@ import { cloudflareService } from './cloudflareService';
 import { sitemapGenerator } from './sitemapGenerator';
 
 const STORAGE_KEYS = {
-  ITEMS: 'media_hub_items_v2',
+  ITEMS: 'media_hub_items_v4',
   DRAFTS: 'media_hub_drafts_v2',
   ADS: 'media_hub_ads_v2',
   DEV_SETTINGS: 'media_hub_dev_settings_v2',
@@ -16,18 +16,27 @@ export const storage = {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.ITEMS);
       if (!data) {
-        const useLive = import.meta.env.VITE_USE_LIVE_API === 'true' || import.meta.env.PROD;
-        if (useLive) {
-          // In production or live mode, do NOT seed mock items
-          return [];
-        }
         localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(INITIAL_ITEMS));
         return INITIAL_ITEMS;
       }
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(INITIAL_ITEMS));
+        return INITIAL_ITEMS;
+      }
+      // Reconcile initial items with latest bespoke asset URLs
+      const initialMap = new Map(INITIAL_ITEMS.map((item) => [item.id, item]));
+      const updated = parsed.map((item: MediaItem) => {
+        const initial = initialMap.get(item.id);
+        if (initial && initial.url && initial.url !== item.url) {
+          return { ...item, url: initial.url, title: initial.title, description: initial.description };
+        }
+        return item;
+      });
+      return updated;
     } catch (e) {
       console.error('Error reading items from localStorage:', e);
-      return [];
+      return INITIAL_ITEMS;
     }
   },
 

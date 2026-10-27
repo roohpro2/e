@@ -5,7 +5,6 @@ import { storage } from './services/storage';
 import { apiService, isLiveMode } from './services/apiService';
 import { adManager } from './services/adManager';
 import { Navbar } from './components/Navbar';
-import { TopNotificationAd } from './components/TopNotificationAd';
 import { WindowHomeGrid } from './components/WindowHomeGrid';
 import { WindowGalleryView } from './components/WindowGalleryView';
 import { ItemDetailPage } from './components/ItemDetailPage';
@@ -36,19 +35,6 @@ export default function App() {
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [termsModalOpen, setTermsModalOpen] = useState(false);
   const [aboutModalOpen, setAboutModalOpen] = useState(false);
-
-  // App Launch: Preload 10 Ads and Images into memory/phone cache & trigger Monetag Vignette / App Open
-  useEffect(() => {
-    // Immediate preloading of 10 ad images and 10 ads for ultra-fast instant display
-    adManager.preloadAdsAndImages();
-
-    // Trigger Monetag Vignette on app launch (guarded by the 60s cooldown rule)
-    const launchTimer = setTimeout(() => {
-      adManager.showMonetagAd();
-    }, 1200);
-
-    return () => clearTimeout(launchTimer);
-  }, []);
 
   // Sync with URL Hash for dedicated links to every page and item (SEO descriptive URLs)
   useEffect(() => {
@@ -173,7 +159,6 @@ export default function App() {
     setCurrentView('window');
     setSelectedItem(null);
     window.location.hash = `#/${winInfo.slug}`;
-    adManager.showMonetagAd();
   };
 
   const handleSelectItem = (item: MediaItem) => {
@@ -183,14 +168,12 @@ export default function App() {
     setActiveWindowId(item.windowId);
     setCurrentView('item');
     window.location.hash = `#/${winInfo.slug}/${code}`;
-    adManager.showMonetagAd();
   };
 
   const handleGoHome = () => {
     setCurrentView('home');
     setSelectedItem(null);
     window.location.hash = '#/';
-    adManager.showMonetagAd();
   };
 
   return (
@@ -205,9 +188,6 @@ export default function App() {
         onOpenUserKeyManager={() => setUserKeyModalOpen(true)}
       />
 
-      {/* Top Center Notification Ad Banner (Safe Isolated CPM Network) */}
-      <TopNotificationAd />
-
       {/* Smart Search Bar on Home and Gallery Views */}
       {currentView !== 'item' && (
         <div className="max-w-7xl mx-auto w-full px-3.5 sm:px-8 pt-4">
@@ -215,6 +195,7 @@ export default function App() {
             items={items}
             onSelectItem={handleSelectItem}
             onSelectWindow={handleSelectWindow}
+            onOpenUserKeyManager={() => setUserKeyModalOpen(true)}
           />
         </div>
       )}
@@ -329,15 +310,6 @@ export default function App() {
             </button>
           </div>
         </div>
-
-        {/* Reserved Bottom Banner Clearance Area (Hidden when Dev Panel is active) */}
-        {!devPanelOpen && (
-          <div
-            id="bottom-ad-banner-slot"
-            className="mx-auto mt-4 max-w-4xl min-h-[50px] flex items-center justify-center text-center px-4"
-            aria-hidden="true"
-          />
-        )}
       </footer>
 
       {/* 4 Distinct Independent Colored Modals */}

@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Home, Bell, Check, Key } from 'lucide-react';
+import { Home, Bell, Check, Download } from 'lucide-react';
 import { WindowId } from '../types';
-import { userCreationsService } from '../services/userCreationsService';
+import { triggerUniversalAppInstall } from '../utils/installApp';
 
 interface NavbarProps {
   currentView: 'home' | 'window' | 'item';
@@ -21,9 +21,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenDevPanel,
   onOpenUserKeyManager
 }) => {
-  const [hasUserKey, setHasUserKey] = useState<boolean>(() => {
-    return !!userCreationsService.getUserGeminiApiKey();
-  });
   const [logoClicks, setLogoClicks] = useState<number>(0);
   const [isSubscribed, setIsSubscribed] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -35,6 +32,35 @@ export const Navbar: React.FC<NavbarProps> = ({
     return false;
   });
   const resetTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isInstalling, setIsInstalling] = useState<boolean>(false);
+  const [isInstalled, setIsInstalled] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const isStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as any).standalone === true;
+      return isStandalone || localStorage.getItem('app_installed_success') === 'true';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const handleInstalled = () => {
+      setIsInstalled(true);
+    };
+    window.addEventListener('app_install_completed', handleInstalled);
+    return () => {
+      window.removeEventListener('app_install_completed', handleInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    setIsInstalling(true);
+    try {
+      await triggerUniversalAppInstall();
+    } finally {
+      setTimeout(() => setIsInstalling(false), 1200);
+    }
+  };
 
   // Instant one-click subscription without any modal
   const handleDirectSubscribe = async () => {
@@ -151,47 +177,43 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Center / Left Navigation Action Slot (Direct 3D Subscribe or Home Button + User API Key) */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {onOpenUserKeyManager && (
-            <button
-              type="button"
-              id="nav-user-key-btn"
-              onClick={onOpenUserKeyManager}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-xs border cursor-pointer ${
-                hasUserKey
-                  ? 'bg-amber-500/10 text-amber-300 border-amber-500/30 hover:bg-amber-500/20'
-                  : 'bg-slate-100/80 text-slate-700 border-slate-300 hover:bg-slate-200/80'
-              }`}
-              title="إدارة مفتاح Google Gemini API الخاص بك"
-            >
-              <Key className={`w-3.5 h-3.5 ${hasUserKey ? 'text-amber-400' : 'text-slate-600'}`} />
-              <span className="hidden sm:inline">{hasUserKey ? 'مفتاحي مفعّل' : 'مفتاح Gemini'}</span>
-              {hasUserKey && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
-            </button>
-          )}
-
+        {/* Center / Left Navigation Action Slot (Direct 3D Subscribe + Download App Button / Home Button) */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {currentView === 'home' ? (
-            /* ON HOME VIEW: Instant Direct 3D Subscribe / Subscribed Toggle Button */
-            <button
-              type="button"
-              id="nav-subscribe-btn"
-              onClick={handleDirectSubscribe}
-              className={isSubscribed ? 'btn-3d-subscribed' : 'btn-3d-subscribe'}
-              title={isSubscribed ? 'أنت مشترك بالفعل في إشعارات OneSignal اليومية' : 'انقر للاشتراك المباشر في الإشعارات والتنبيهات اليومية'}
-            >
-              {isSubscribed ? (
-                <>
-                  <Check className="w-4 h-4 text-emerald-950 stroke-[3]" />
-                  <span>مشترك ✓</span>
-                </>
-              ) : (
-                <>
-                  <Bell className="w-4 h-4 text-amber-900 fill-amber-900 animate-bounce-subtle" />
-                  <span>اشتراك</span>
-                </>
-              )}
-            </button>
+            <>
+              {/* ON HOME VIEW: Instant Direct 3D Compact Subscribe / Subscribed Toggle Button */}
+              <button
+                type="button"
+                id="nav-subscribe-btn"
+                onClick={handleDirectSubscribe}
+                className={isSubscribed ? 'btn-3d-subscribed' : 'btn-3d-subscribe'}
+                title={isSubscribed ? 'أنت مشترك بالفعل في إشعارات OneSignal اليومية' : 'انقر للاشتراك المباشر في الإشعارات والتنبيهات اليومية'}
+              >
+                {isSubscribed ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-950 stroke-[3]" />
+                    <span>مشترك ✓</span>
+                  </>
+                ) : (
+                  <>
+                    <Bell className="w-3.5 h-3.5 text-amber-900 fill-amber-900 animate-bounce-subtle" />
+                    <span>اشتراك</span>
+                  </>
+                )}
+              </button>
+
+              {/* Download App Button beside Subscribe */}
+              <button
+                type="button"
+                id="nav-download-app-btn"
+                onClick={handleInstallClick}
+                title={isInstalled ? 'التطبيق مثبت كبرنامج مستقل على جهازك' : 'تحميل وتثبيت التطبيق بنقرة واحدة (Android / Desktop / iPhone)'}
+                className="relative group flex items-center gap-1 px-2.5 py-1 sm:py-1.5 rounded-xl bg-gradient-to-b from-cyan-400 via-sky-500 to-blue-600 border border-cyan-200 border-b-[2.5px] border-b-blue-800 text-white shadow-[0_3px_8px_rgba(6,182,212,0.4)] hover:shadow-[0_4px_12px_rgba(6,182,212,0.6)] hover:brightness-110 active:translate-y-[1.5px] active:border-b-blue-700 transition-all text-xs font-bold cursor-pointer select-none"
+              >
+                <Download className={`w-3.5 h-3.5 text-white drop-shadow-xs ${isInstalling ? 'animate-bounce' : 'group-hover:translate-y-0.5 transition-transform'}`} />
+                <span className="text-[11px] font-black">{isInstalled ? 'مثبت ✓' : 'تحميل'}</span>
+              </button>
+            </>
           ) : (
             /* ON OTHER VIEWS: Attractive 3D Home Button in the EXACT same slot */
             <button

@@ -129,6 +129,7 @@ export const UserKeyManagerModal: React.FC<UserKeyManagerModalProps> = ({
       if (onKeySaved) {
         onKeySaved();
       }
+      window.dispatchEvent(new CustomEvent('user-gemini-key-changed'));
     } catch (err: any) {
       showToast(err.message || 'حدث خطأ أثناء حفظ المفتاح', 'error');
     } finally {
@@ -142,6 +143,7 @@ export const UserKeyManagerModal: React.FC<UserKeyManagerModalProps> = ({
     setApiKeyInput('');
     setHasSavedKey(false);
     setVerificationResult(null);
+    window.dispatchEvent(new CustomEvent('user-gemini-key-changed'));
     showToast('تمت إزالة المفتاح من جلسة المتصفح الحالية', 'success');
     if (onKeySaved) {
       onKeySaved();

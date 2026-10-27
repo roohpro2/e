@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   ArrowRight,
+  ArrowLeft,
   Sparkles,
   Copy,
   Check,
@@ -115,86 +116,27 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
   };
 
   /**
-   * For DESKTOP 3-column grid, alternating pattern [Item, Ad, Item]
+   * For DESKTOP 3-column grid
    */
   const renderDesktopGrid = () => {
-    const devSettings = storage.getDevSettings();
-    const isAdsActive = devSettings.adNetworks?.globalAdsEnabled !== false;
-
-    // If global ads disabled, render pure clean item grid without ad slots
-    if (!isAdsActive) {
-      return (
-        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {windowItems.map((item, index) => renderItemCard(item, `desktop-clean-item-${item.id}-${index}`, index))}
-        </div>
-      );
-    }
-
-    const desktopSlots: Array<{ type: 'item'; item: MediaItem } | { type: 'ad'; adIndex: number }> = [];
-    let itemIdx = 0;
-    let rowIndex = 0;
-    let adCounter = 0;
-
-    while (itemIdx < windowItems.length) {
-      const isAdRow = rowIndex % 2 === 0;
-
-      if (isAdRow) {
-        if (itemIdx < windowItems.length) {
-          desktopSlots.push({ type: 'item', item: windowItems[itemIdx++] });
-        }
-        desktopSlots.push({ type: 'ad', adIndex: adCounter++ });
-        if (itemIdx < windowItems.length) {
-          desktopSlots.push({ type: 'item', item: windowItems[itemIdx++] });
-        }
-      } else {
-        for (let k = 0; k < 3; k++) {
-          if (itemIdx < windowItems.length) {
-            desktopSlots.push({ type: 'item', item: windowItems[itemIdx++] });
-          }
-        }
-      }
-      rowIndex++;
-    }
-
     return (
       <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {desktopSlots.map((slot, index) => {
-          if (slot.type === 'ad') {
-            return (
-              <div key={`desktop-ad-slot-${index}`} className="w-full aspect-square flex items-center justify-center">
-                <AdDisplay size="350x350" slotIndex={slot.adIndex} className="w-full aspect-square" />
-              </div>
-            );
-          }
-
-          const item = slot.item;
-          return renderItemCard(item, `desktop-item-${item.id}-${index}`, index);
-        })}
+        {windowItems.map((item, index) => renderItemCard(item, `desktop-clean-item-${item.id}-${index}`, index))}
       </div>
     );
   };
 
   /**
    * For MOBILE view:
-   * Every single item is a full-width square window, directly followed by a full-width square ad (if enabled)!
+   * Every single item is a full-width square window
    */
   const renderMobileFlow = () => {
-    const devSettings = storage.getDevSettings();
-    const isAdsActive = devSettings.adNetworks?.globalAdsEnabled !== false;
-
     return (
       <div className="sm:hidden flex flex-col space-y-6 w-full">
         {windowItems.map((item, index) => (
           <React.Fragment key={`mobile-group-${item.id}-${index}`}>
             {/* Full-width Square Item Window Card with dynamic neon frame */}
             {renderItemCard(item, `mobile-item-${item.id}`, index)}
-            
-            {/* Full-width Square Ad (only if ads enabled globally) */}
-            {isAdsActive && (
-              <div className="w-full aspect-square">
-                <AdDisplay size="page_width" slotIndex={index} className="w-full aspect-square shadow-sm" />
-              </div>
-            )}
           </React.Fragment>
         ))}
       </div>
@@ -311,8 +253,9 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
               onSelectItem(item);
             }}
             className={get3DButtonClass(windowId)}
+            title="دخول البرومبت"
           >
-            بدء
+            <ArrowLeft className="w-4 h-4 text-white drop-shadow-xs" />
           </button>
         </div>
       </div>
@@ -338,6 +281,19 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
             >
               <ArrowRight className="h-4 w-4" />
             </button>
+
+            {/* Portal Unique Bespoke Cover Thumbnail */}
+            {currentWindow.coverImage && (
+              <div className="relative h-11 w-11 sm:h-14 sm:w-14 shrink-0 overflow-hidden rounded-xl border border-slate-200 shadow-sm bg-slate-100">
+                <img
+                  src={currentWindow.coverImage}
+                  alt={currentWindow.arabicName}
+                  referrerPolicy="no-referrer"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            )}
+
             <div className="flex-1 min-w-0">
               {/* Responsive Layout: Portal Badge above text on mobile for natural text flow; inline side-by-side on desktop */}
               <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2.5">

@@ -364,13 +364,6 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
               </button>
             </div>
           </div>
-
-          {/* Integrated Ad 1 (350x350) right alongside Media (only if ads enabled) */}
-          {devSettings.adNetworks?.globalAdsEnabled !== false && (
-            <div className="lg:col-span-4 flex justify-center">
-              <AdDisplay size="350x350" slotIndex={1} className="w-full max-w-[350px]" />
-            </div>
-          )}
         </div>
 
         {/* Middle Section: Real-time Editable Prompt Playground */}
@@ -562,11 +555,6 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
             </div>
           )}
         </div>
-
-        {/* Bottom Section: Integrated Ad 2 (350x350) below the prompt */}
-        <div className="flex flex-col items-center justify-center pt-2">
-          <AdDisplay size="350x350" slotIndex={2} className="w-full max-w-[350px]" />
-        </div>
       </div>
 
       {/* ========================================================= */}
@@ -659,13 +647,6 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
             </button>
           </div>
         </div>
-
-        {/* 2. Integrated Ad 1 (Full-width Square) below image (only if ads enabled) */}
-        {devSettings.adNetworks?.globalAdsEnabled !== false && (
-          <div className="w-full aspect-square">
-            <AdDisplay size="page_width" slotIndex={1} className="w-full aspect-square shadow-sm" />
-          </div>
-        )}
 
         {/* 3. Box with Real-time Editable Prompt */}
         <div className="rounded-2xl border-2 border-slate-200 bg-white p-4 shadow-sm space-y-3">
@@ -771,13 +752,6 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
             ))}
           </div>
         </div>
-
-        {/* 4. Integrated Ad 2 (350x350) below the prompt (only if ads enabled) */}
-        {devSettings.adNetworks?.globalAdsEnabled !== false && (
-          <div className="w-full pt-1">
-            <AdDisplay size="350x350" slotIndex={2} className="w-full max-w-[350px] mx-auto" />
-          </div>
-        )}
 
         {/* Prompt Mutator & Expansion Modal */}
         <PromptMutatorModal

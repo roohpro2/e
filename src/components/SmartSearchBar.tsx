@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
-import { Search, ArrowLeft, X, HelpCircle, Sparkles, Wand2, Lightbulb, Check, User, Flame, Download } from 'lucide-react';
+import { Search, ArrowLeft, X, HelpCircle, Sparkles, Wand2, Lightbulb, Check, User, Flame, Key } from 'lucide-react';
 import { MediaItem, WindowId } from '../types';
 import { getNumericCode } from '../utils/idHelper';
 import { useAuth } from '../context/AuthContext';
 import { UserProfileModal } from './UserProfileModal';
-import { triggerUniversalAppInstall } from '../utils/installApp';
+import { userCreationsService } from '../services/userCreationsService';
 
 interface SmartSearchBarProps {
   items: MediaItem[];
   onSelectItem: (item: MediaItem) => void;
   onSelectWindow: (winId: WindowId) => void;
+  onOpenUserKeyManager?: () => void;
 }
 
 export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
   items,
   onSelectItem,
-  onSelectWindow
+  onSelectWindow,
+  onOpenUserKeyManager
 }) => {
   const { user, isAuthenticated, guestAttemptsRemaining } = useAuth();
   const [query, setQuery] = useState('');
@@ -23,36 +25,21 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [isInstalling, setIsInstalling] = useState(false);
+  const [hasUserKey, setHasUserKey] = useState<boolean>(() => {
+    return !!userCreationsService.getUserGeminiApiKey();
+  });
 
   React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isStandalone =
-        window.matchMedia('(display-mode: standalone)').matches ||
-        (window.navigator as any).standalone === true;
-      if (isStandalone || localStorage.getItem('app_installed_success') === 'true') {
-        setIsInstalled(true);
-      }
-    }
-
-    const handleInstalled = () => {
-      setIsInstalled(true);
+    const handleKeyChange = () => {
+      setHasUserKey(!!userCreationsService.getUserGeminiApiKey());
     };
-    window.addEventListener('app_install_completed', handleInstalled);
+    window.addEventListener('storage', handleKeyChange);
+    window.addEventListener('user-gemini-key-changed', handleKeyChange);
     return () => {
-      window.removeEventListener('app_install_completed', handleInstalled);
+      window.removeEventListener('storage', handleKeyChange);
+      window.removeEventListener('user-gemini-key-changed', handleKeyChange);
     };
   }, []);
-
-  const handleInstallClick = async () => {
-    setIsInstalling(true);
-    try {
-      await triggerUniversalAppInstall();
-    } finally {
-      setTimeout(() => setIsInstalling(false), 1200);
-    }
-  };
 
   React.useEffect(() => {
     if (isHelpModalOpen) {
@@ -126,42 +113,49 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
   return (
     <div className="w-full relative z-20">
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* Universal PWA / Native Download & Install App Button (In the empty side, opposite to 'انتقل') */}
-        <button
-          type="button"
-          id="search-install-app-btn"
-          onClick={handleInstallClick}
-          title={isInstalled ? 'التطبيق مثبت كبرنامج مستقل على جهازك' : 'تحميل وتثبيت التطبيق بنقرة واحدة (Android / Desktop / iPhone)'}
-          className="relative group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 h-10 sm:h-11 rounded-2xl bg-gradient-to-b from-cyan-400 via-sky-500 to-blue-600 border border-cyan-200 border-b-[3px] border-b-blue-800 text-white shadow-[0_4px_12px_rgba(6,182,212,0.4),0_0_12px_rgba(14,165,233,0.3)] hover:shadow-[0_6px_20px_rgba(6,182,212,0.65)] hover:brightness-110 active:translate-y-[2px] active:border-b-blue-700 active:shadow-xs transition-all duration-150 shrink-0 cursor-pointer select-none"
-        >
-          {/* Subtle light sweep reflection */}
-          <span className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
-            <span className="absolute -inset-full bg-gradient-to-r from-transparent via-white/25 to-transparent -rotate-45 group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
-          </span>
-
-          <div className="relative flex items-center justify-center w-6 h-6 rounded-lg bg-white/20 shadow-inner group-hover:scale-110 transition-transform">
-            <Download className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-white drop-shadow-xs ${isInstalling ? 'animate-bounce' : 'group-hover:translate-y-0.5 transition-transform'}`} />
-          </div>
-
-          <div className="flex flex-col text-right leading-none">
-            <span className="text-[11px] sm:text-xs font-black drop-shadow-xs flex items-center gap-1">
-              <span className="sm:hidden">تحميل</span>
-              <span className="hidden sm:inline">تحميل التطبيق</span>
-              <Sparkles className="w-3 h-3 text-yellow-300 animate-pulse hidden sm:inline" />
+        {/* Gemini API Key Management Button (Beside Search Box in place of old download button) */}
+        {onOpenUserKeyManager && (
+          <button
+            type="button"
+            id="search-user-key-btn"
+            onClick={onOpenUserKeyManager}
+            title="إدارة مفتاح Google Gemini API الخاص بك"
+            className={`relative group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 h-10 sm:h-11 rounded-2xl border transition-all duration-150 shrink-0 cursor-pointer select-none active:translate-y-[2px] ${
+              hasUserKey
+                ? 'bg-gradient-to-b from-amber-400 via-amber-500 to-yellow-600 border-amber-300 border-b-[3px] border-b-amber-800 text-slate-950 shadow-[0_4px_12px_rgba(245,158,11,0.4)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.6)] hover:brightness-105'
+                : 'bg-gradient-to-b from-slate-100 via-slate-200 to-slate-300 border-slate-300 border-b-[3px] border-b-slate-500 text-slate-800 shadow-[0_3px_8px_rgba(0,0,0,0.1)] hover:bg-white hover:brightness-105'
+            }`}
+          >
+            {/* Subtle light sweep reflection */}
+            <span className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
+              <span className="absolute -inset-full bg-gradient-to-r from-transparent via-white/25 to-transparent -rotate-45 group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
             </span>
-            <span className="text-[9px] text-cyan-100 font-bold hidden sm:inline pt-0.5">
-              {isInstalled ? 'التطبيق مثبت ✓' : 'تثبيت فوري PWA'}
-            </span>
-          </div>
 
-          {/* Glowing pulse indicator dot */}
-          {!isInstalled && (
-            <span className="absolute -top-1 -right-1 flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-300 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-400 border border-white"></span>
-            </span>
-          )}
-        </button>
+            <div className={`relative flex items-center justify-center w-6 h-6 rounded-lg ${hasUserKey ? 'bg-black/15' : 'bg-white/60'} shadow-inner group-hover:scale-110 transition-transform`}>
+              <Key className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${hasUserKey ? 'text-slate-950' : 'text-slate-700'} drop-shadow-xs`} />
+            </div>
+
+            <div className="flex flex-col text-right leading-none">
+              <span className="text-[11px] sm:text-xs font-black drop-shadow-xs flex items-center gap-1">
+                <span>مفتاح Gemini</span>
+                <Sparkles className={`w-3 h-3 ${hasUserKey ? 'text-yellow-200' : 'text-amber-500'} animate-pulse hidden sm:inline`} />
+              </span>
+              <span className={`text-[9px] font-bold hidden sm:inline pt-0.5 ${hasUserKey ? 'text-amber-950' : 'text-slate-500'}`}>
+                {hasUserKey ? 'مفتاحي مفعّل ✓' : 'إدارة المفتاح'}
+              </span>
+            </div>
+
+            {/* Glowing active indicator dot */}
+            {hasUserKey ? (
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border border-white"></span>
+              </span>
+            ) : (
+              <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5 rounded-full bg-amber-400 border border-white" />
+            )}
+          </button>
+        )}
 
         {/* Main Search Input Form */}
         <form onSubmit={handleSearch} className="relative flex-1">
@@ -226,7 +220,6 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
                   e.preventDefault();
                   e.stopPropagation();
                   setIsHelpModalOpen(true);
-                  window.dispatchEvent(new Event('trigger-top-notification-ad'));
                 }}
                 title="دليل البحث والاستدعاء البرمجي"
                 className="relative flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-gradient-to-tr from-red-600 via-red-500 to-rose-500 text-white font-black text-xs sm:text-sm shadow-[0_0_10px_rgba(239,68,68,0.7)] border-2 border-white/80 hover:scale-110 hover:shadow-[0_0_15px_rgba(239,68,68,0.9)] active:scale-90 transition-all duration-200 cursor-pointer overflow-hidden select-none animate-pulse hover:animate-none"

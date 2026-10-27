@@ -7,7 +7,8 @@ import {
   ShoppingBag,
   ScanEye,
   Layers,
-  Sparkles
+  Sparkles,
+  ArrowLeft
 } from 'lucide-react';
 import { WINDOWS_INFO } from '../data/defaultData';
 import { WindowId, MediaItem } from '../types';
@@ -125,6 +126,7 @@ export const WindowHomeGrid: React.FC<WindowHomeGridProps> = ({
 
     const winItems = items.filter((it) => it.windowId === win.id);
     const topItem = winItems[0];
+    const cardImage = win.coverImage || topItem?.url;
 
     return (
       <div
@@ -151,9 +153,9 @@ export const WindowHomeGrid: React.FC<WindowHomeGridProps> = ({
 
         {/* Center Square Thumbnail */}
         <div className="relative my-2 flex-1 w-full overflow-hidden rounded-[12px] border border-slate-200 bg-slate-100 group-hover:border-slate-300 transition-colors shadow-2xs">
-          {topItem ? (
+          {cardImage ? (
             <img
-              src={topItem.url}
+              src={cardImage}
               alt={win.name}
               referrerPolicy="no-referrer"
               className="h-full w-full object-cover rounded-[12px] transition-transform duration-500 group-hover:scale-105"
@@ -183,8 +185,9 @@ export const WindowHomeGrid: React.FC<WindowHomeGridProps> = ({
               onSelectWindow(win.id);
             }}
             className={get3DButtonClass(win.id as WindowId)}
+            title={`دخول ${win.arabicName}`}
           >
-            بدء
+            <ArrowLeft className="w-4 h-4 text-white drop-shadow-xs" />
           </button>
         </div>
       </div>
@@ -197,9 +200,10 @@ export const WindowHomeGrid: React.FC<WindowHomeGridProps> = ({
       {/* 1. MOBILE VIEW (Full-width Square Windows + Neon Frame + Square Ad after each) */}
       {/* ========================================================= */}
       <div className="sm:hidden flex flex-col space-y-6 w-full">
-        {WINDOWS_INFO.map((win, idx) => {
+        {WINDOWS_INFO.map((win) => {
           const winItems = items.filter((it) => it.windowId === win.id);
           const topItem = winItems[0];
+          const cardImage = win.coverImage || topItem?.url;
 
           return (
             <React.Fragment key={`mobile-group-${win.id}`}>
@@ -229,9 +233,9 @@ export const WindowHomeGrid: React.FC<WindowHomeGridProps> = ({
 
                 {/* Center Square Thumbnail (Taking full center area) */}
                 <div className="relative my-2.5 flex-1 w-full overflow-hidden rounded-[12px] border border-slate-200 bg-slate-100 group-hover:border-slate-300 transition-colors shadow-inner">
-                  {topItem ? (
+                  {cardImage ? (
                     <img
-                      src={topItem.url}
+                      src={cardImage}
                       alt={win.name}
                       referrerPolicy="no-referrer"
                       className="h-full w-full object-cover rounded-[12px] transition-transform duration-500 group-hover:scale-105"
@@ -267,19 +271,11 @@ export const WindowHomeGrid: React.FC<WindowHomeGridProps> = ({
                       onSelectWindow(win.id);
                     }}
                     className={get3DButtonClass(win.id as WindowId)}
+                    title={`دخول ${win.arabicName}`}
                   >
-                    بدء
+                    <ArrowLeft className="w-4 h-4 text-white drop-shadow-xs" />
                   </button>
                 </div>
-              </div>
-
-              {/* Integrated Square Ad (Takes full mobile width from right to left) */}
-              <div className="w-full">
-                <AdDisplay
-                  size="350x350"
-                  slotIndex={idx}
-                  className="w-full aspect-square shadow-sm"
-                />
               </div>
             </React.Fragment>
           );
@@ -287,37 +283,12 @@ export const WindowHomeGrid: React.FC<WindowHomeGridProps> = ({
       </div>
 
       {/* ========================================================= */}
-      {/* 2. DESKTOP / TABLET VIEW (Staggered 3x3 Grid: Portals & Integrated Ads) */}
+      {/* 2. DESKTOP / TABLET VIEW (Clean 3-column Grid) */}
       {/* ========================================================= */}
       <div className="hidden sm:block">
-        {storage.getDevSettings().adNetworks?.globalAdsEnabled !== false ? (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-            {/* الصف الأول: بوابة رقم 1 - إعلان مدمج - بوابة رقم 2 */}
-            {renderDesktopPortalCard(1)}
-            <div key="desktop-home-ad-0" className="w-full aspect-square flex items-center justify-center">
-              <AdDisplay size="350x350" slotIndex={0} className="w-full aspect-square" />
-            </div>
-            {renderDesktopPortalCard(2)}
-
-            {/* الصف الثاني: بوابة رقم 3 - بوابة رقم 4 - إعلان مدمج */}
-            {renderDesktopPortalCard(3)}
-            {renderDesktopPortalCard(4)}
-            <div key="desktop-home-ad-1" className="w-full aspect-square flex items-center justify-center">
-              <AdDisplay size="350x350" slotIndex={1} className="w-full aspect-square" />
-            </div>
-
-            {/* الصف الثالث: إعلان مدمج - بوابة رقم 5 - بوابة رقم 6 */}
-            <div key="desktop-home-ad-2" className="w-full aspect-square flex items-center justify-center">
-              <AdDisplay size="350x350" slotIndex={2} className="w-full aspect-square" />
-            </div>
-            {renderDesktopPortalCard(5)}
-            {renderDesktopPortalCard(6)}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-            {WINDOWS_INFO.map((win) => renderDesktopPortalCard(win.id as WindowId))}
-          </div>
-        )}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+          {WINDOWS_INFO.map((win) => renderDesktopPortalCard(win.id as WindowId))}
+        </div>
       </div>
     </div>
   );
