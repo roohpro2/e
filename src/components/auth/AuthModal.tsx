@@ -74,7 +74,7 @@ export const AuthModal: React.FC = () => {
       className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/85 p-4 backdrop-blur-md animate-in fade-in duration-200"
       dir="rtl"
     >
-      <div className="relative flex w-full max-w-md max-h-[calc(90vh-50px)] overflow-y-auto flex-col rounded-3xl border border-slate-800 bg-slate-900 text-slate-100 shadow-2xl shadow-blue-500/10 transform -translate-y-[50px] sm:-translate-y-[50px]">
+      <div className="relative flex w-full max-w-md max-h-[88vh] overflow-y-auto flex-col rounded-3xl border border-slate-800 bg-slate-900 text-slate-100 shadow-2xl shadow-blue-500/10 my-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-800 bg-slate-950/70 px-6 py-4">
           <div className="flex items-center gap-2.5">

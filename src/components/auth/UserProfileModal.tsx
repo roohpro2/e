@@ -307,7 +307,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
 
   return (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200" dir="rtl">
-      <div className="relative w-full max-w-2xl max-h-[calc(92vh-50px)] flex flex-col rounded-3xl border-2 border-yellow-400 bg-slate-950 text-white shadow-[0_25px_80px_rgba(0,0,0,0.85),0_0_35px_rgba(250,204,21,0.35)] animate-in zoom-in-95 duration-200 overflow-hidden transform -translate-y-[50px] sm:-translate-y-[50px]">
+      <div className="relative w-full max-w-2xl max-h-[88vh] flex flex-col rounded-3xl border-2 border-yellow-400 bg-slate-950 text-white shadow-[0_25px_80px_rgba(0,0,0,0.85),0_0_35px_rgba(250,204,21,0.35)] animate-in zoom-in-95 duration-200 overflow-hidden my-auto">
         
         {/* Top Accent Gradient Ribbon */}
         <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 via-amber-400 to-emerald-400 shrink-0" />

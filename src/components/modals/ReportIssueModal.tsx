@@ -89,7 +89,7 @@ export const ReportIssueModal: React.FC<ReportIssueModalProps> = ({ isOpen, onCl
       className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200"
       dir="rtl"
     >
-      <div className="relative w-full max-w-xl max-h-[calc(90vh-50px)] flex flex-col overflow-hidden rounded-3xl border-2 border-red-500/60 bg-slate-950 text-white shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_35px_rgba(239,68,68,0.3)] animate-in zoom-in-95 duration-200 transform -translate-y-[50px] sm:-translate-y-[50px]">
+      <div className="relative w-full max-w-xl max-h-[88vh] flex flex-col overflow-hidden rounded-3xl border-2 border-red-500/60 bg-slate-950 text-white shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_35px_rgba(239,68,68,0.3)] animate-in zoom-in-95 duration-200 my-auto">
         
         {/* Dynamic Red Accent Bar */}
         <div className="h-2 w-full bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 shrink-0" />

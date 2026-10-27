@@ -14,7 +14,7 @@ export const WINDOWS_INFO: WindowInfo[] = [
     iconName: 'Camera',
     codeRange: '101+',
     themeColor: '#2563EB',
-    coverImage: '/src/assets/images/portal_falcon_photo_1793071241443.jpg'
+    coverImage: '/assets/images/portal_1_photo.jpg'
   },
   {
     id: 2,
@@ -29,7 +29,7 @@ export const WINDOWS_INFO: WindowInfo[] = [
     iconName: 'Wand2',
     codeRange: '201+',
     themeColor: '#9333EA',
-    coverImage: '/src/assets/images/portal_fantasy_samurai_1793071242263.jpg'
+    coverImage: '/assets/images/portal_2_fantasy.jpg'
   },
   {
     id: 3,
@@ -44,7 +44,7 @@ export const WINDOWS_INFO: WindowInfo[] = [
     iconName: 'Video',
     codeRange: '301+',
     themeColor: '#EF4444',
-    coverImage: '/src/assets/images/portal_cinema_motion_1793071243125.jpg'
+    coverImage: '/assets/images/portal_3_cinema.jpg'
   },
   {
     id: 4,
@@ -59,7 +59,7 @@ export const WINDOWS_INFO: WindowInfo[] = [
     iconName: 'Mic',
     codeRange: '401+',
     themeColor: '#10B981',
-    coverImage: '/src/assets/images/portal_voice_zen_1793071244039.jpg'
+    coverImage: '/assets/images/portal_4_voice.jpg'
   },
   {
     id: 5,
@@ -74,7 +74,7 @@ export const WINDOWS_INFO: WindowInfo[] = [
     iconName: 'ShoppingBag',
     codeRange: '501+',
     themeColor: '#F97316',
-    coverImage: '/src/assets/images/portal_perfume_mockup_1793071245759.jpg'
+    coverImage: '/assets/images/portal_5_commercial.jpg'
   },
   {
     id: 6,
@@ -89,7 +89,7 @@ export const WINDOWS_INFO: WindowInfo[] = [
     iconName: 'ScanEye',
     codeRange: '601+',
     themeColor: '#64748B',
-    coverImage: '/src/assets/images/portal_vision_scanner_1793071244264.jpg'
+    coverImage: '/assets/images/portal_6_vision.jpg'
   }
 ];
 
@@ -104,7 +104,7 @@ export const INITIAL_ITEMS: MediaItem[] = [
     type: 'image',
     title: 'صقر صحراوي أصيل بتفاصيل الريش وإضاءة الغروب',
     description: 'لوحة سينمائية لصقر عربي شاهين فوق صخور صحراوية مع فيزياء إضاءة الغروب الذهبية بدقة 8K.',
-    url: '/src/assets/images/portal_falcon_photo_1793071241443.jpg',
+    url: '/assets/images/portal_falcon_photo_1793071241443.jpg',
     prompt: 'Ultra-detailed macro wildlife photography of a majestic Arabian desert falcon perched on ancient weathered sandstone, golden hour rim lighting catching razor-sharp individual feathers, brilliant amber eye reflection, Hasselblad H6D-100c, 100mm f/2.8 lens, shallow depth of field, photorealistic, 8k resolution --ar 1:1 --v 6.1',
     negativePrompt: 'blurry, low quality, oversaturated, deformed beak, extra wings, cartoonish, lowres',
     model: 'Midjourney v6.1',
@@ -198,7 +198,7 @@ export const INITIAL_ITEMS: MediaItem[] = [
     type: 'image',
     title: 'محاربة سايبربانك بأنيمي ثلاثي الأبعاد مع سيف نيون',
     description: 'شخصية أنيمي متقنة في مدينة مستقبلية ممطرة بألوان بنفسجية ووردية متوهجة وإضاءة حجمية.',
-    url: '/src/assets/images/portal_fantasy_samurai_1793071242263.jpg',
+    url: '/assets/images/portal_fantasy_samurai_1793071242263.jpg',
     prompt: '3D Anime stylized cyber warrior standing on Neo-Tokyo rooftop, volumetric rain and neon billboards, holding glowing plasma katana, Unreal Engine 5 render, Octane 3D, Makoto Shinkai lighting aesthetic, masterpiece --ar 1:1 --niji 6',
     negativePrompt: 'bad anatomy, extra limbs, 2D flat, low quality, pixelated, washed out',
     model: 'Niji v6',
@@ -292,7 +292,7 @@ export const INITIAL_ITEMS: MediaItem[] = [
     type: 'youtube_video',
     title: 'لقطة سينمائية لمركبة هوائية فائقة السرعة عند الشفق',
     description: 'حركة كاميرا سينمائية ديناميكية لمركبة تسبق الريح في ممر مائي مع ومضات سينمائية 8K.',
-    url: '/src/assets/images/portal_cinema_motion_1793071243125.jpg',
+    url: '/assets/images/portal_cinema_motion_1793071243125.jpg',
     videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0&controls=1&rel=0',
     prompt: 'Cinematic movie still of a sleek futuristic high-speed hovercraft racing through a rain-slicked city canal at twilight, anamorphic teal and orange lens flares, dynamic motion blur on water reflections, IMAX 70mm cinematography, dramatic film lighting --ar 16:9',
     negativePrompt: 'shaky camera, low resolution, stuttering, oversaturated, watermark',
@@ -391,7 +391,7 @@ export const INITIAL_ITEMS: MediaItem[] = [
     type: 'image',
     title: 'حديقة يابانية ساحرة وقت الشروق مع تموجات صوتية زمردية',
     description: 'صورة فائقة الطبيعية تم توليدها بالصوت: "ارسم حديقة يابانية بضباب شروق الشمس وتموجات صوتية هادئة".',
-    url: '/src/assets/images/portal_voice_zen_1793071244039.jpg',
+    url: '/assets/images/portal_voice_zen_1793071244039.jpg',
     prompt: '[Voice Prompt: "حديقة يابانية بضباب شروق الشمس وتموجات صوتية"] Atmospheric serene zen water garden at dawn with glowing emerald soundwaves rippling through a clear reflecting pond, ancient stone lantern, mossy bamboo forest with misty ethereal morning sunbeams, peaceful natural soundscape visualization, photorealistic 8k --ar 1:1',
     negativePrompt: 'photorealistic defects, blurry, distorted bridge, oversaturated neon',
     model: 'Voice Gemini 2.5 Flash + Flux.1',
@@ -485,7 +485,7 @@ export const INITIAL_ITEMS: MediaItem[] = [
     type: 'commercial_ad',
     title: 'إعلان زجاجة عطر فاخرة فوق صخور بركانية مع رذاذ ماء متطاير',
     description: 'تصوير تجاري احترافي لمنتج عطر رجالي راقٍ مع إضاءة استوديو درامية وقطرات كريستالية متطايرة.',
-    url: '/src/assets/images/portal_perfume_mockup_1793071245759.jpg',
+    url: '/assets/images/portal_perfume_mockup_1793071245759.jpg',
     prompt: 'High-end commercial product photography of a luxury matte black and gilded gold perfume flask on wet dark obsidian rock, crisp crystal water splash droplets frozen in mid-air, studio rim softbox lighting, Vogue commercial advertisement mockup, 8k --ar 1:1',
     negativePrompt: 'cheap looking, label distortion, blurry product, bad lighting, text',
     model: 'FLUX.1 Dev',
@@ -579,7 +579,7 @@ export const INITIAL_ITEMS: MediaItem[] = [
     type: 'reverse_vision',
     title: 'تحليل بصري: ماسح بصري سيبراني بتقنية الهولوجرام',
     description: 'تم تفكيك الأسلوب واستخراج البرومبت الهندسي العكسي بدقة 99% وتحديد الشبكات الطيفية.',
-    url: '/src/assets/images/portal_vision_scanner_1793071244264.jpg',
+    url: '/assets/images/portal_vision_scanner_1793071244264.jpg',
     prompt: 'Reverse-Engineered Prompt: Futuristic cybernetic holographic optic eye scanner analyzing geometric data wireframes, glowing cyan and laser blue spectral grid lines floating in dark high-tech research laboratory, AI vision neural analysis, clean sci-fi 3D render --ar 1:1',
     negativePrompt: 'blurry buildings, flat lighting, oversaturated sky, pixelated',
     model: 'Groq Vision + Gemini AI',

@@ -163,7 +163,7 @@ export const UserKeyManagerModal: React.FC<UserKeyManagerModalProps> = ({
       className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 p-3 sm:p-4 backdrop-blur-sm animate-in fade-in duration-200"
       dir="rtl"
     >
-      <div className="relative w-full max-w-xl overflow-hidden rounded-3xl border border-slate-700 bg-slate-900 text-slate-100 shadow-2xl space-y-5 p-5 sm:p-7 max-h-[calc(92vh-50px)] overflow-y-auto transform -translate-y-[50px] sm:-translate-y-[50px]">
+      <div className="relative w-full max-w-xl overflow-hidden rounded-3xl border border-slate-700 bg-slate-900 text-slate-100 shadow-2xl space-y-5 p-5 sm:p-7 max-h-[88vh] overflow-y-auto my-auto">
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-4">

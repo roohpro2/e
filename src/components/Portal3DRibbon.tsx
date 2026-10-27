@@ -277,7 +277,7 @@ export const Portal3DRibbon: React.FC<Portal3DRibbonProps> = ({
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
-          className="flex items-center gap-3.5 overflow-x-hidden py-2 px-3 cursor-grab active:cursor-grabbing select-none"
+          className="flex items-center gap-2.5 sm:gap-3.5 overflow-x-auto scrollbar-none py-1.5 sm:py-2 px-2 sm:px-3 cursor-grab active:cursor-grabbing select-none touch-pan-x"
           style={{
             perspective: '1200px',
             WebkitOverflowScrolling: 'touch'
@@ -309,13 +309,13 @@ export const Portal3DRibbon: React.FC<Portal3DRibbonProps> = ({
                     : 'hover:scale-102 hover:-translate-y-0.5 opacity-95 hover:opacity-100 shadow-sm'
                 }`}
                 style={{
-                  width: '235px',
+                  width: 'clamp(180px, 48vw, 235px)',
                   borderRadius: '16px'
                 }}
               >
                 {/* 3D Dynamic Colorful Window Container */}
                 <div
-                  className={`relative overflow-hidden rounded-2xl border-2 bg-gradient-to-br ${meta.cardBg} p-3.5 transition-all ${
+                  className={`relative overflow-hidden rounded-2xl border-2 bg-gradient-to-br ${meta.cardBg} p-2.5 sm:p-3.5 transition-all ${
                     isActive
                       ? 'border-yellow-400 shadow-md ring-1 ring-yellow-300'
                       : `border-slate-200 hover:${meta.accentBorder} hover:shadow-md`
@@ -329,16 +329,22 @@ export const Portal3DRibbon: React.FC<Portal3DRibbonProps> = ({
                   {/* Top Glossy Light Reflection Bar */}
                   <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-white/80 to-transparent" />
 
-                  {/* Header Row: Real Portal Icon + Status Badge */}
-                  <div className="flex items-center justify-between mb-2">
-                    <div
-                      className={`flex h-8 w-8 items-center justify-center rounded-xl border border-white/60 shadow-xs transition-transform group-hover:scale-110 ${meta.iconBg}`}
-                      style={{ color: meta.iconColor }}
-                    >
-                      {portalIcons[win.id] || <Sparkles className="w-4 h-4" />}
+                  {/* Header Row: Real Portal Cover Image + Status Badge */}
+                  <div className="flex items-center justify-between mb-2 gap-2">
+                    <div className="relative h-8 w-8 sm:h-9 sm:w-9 rounded-xl overflow-hidden border border-white/80 shadow-xs shrink-0 bg-slate-100">
+                      <img
+                        src={win.coverImage || `/assets/images/portal_${win.id}.jpg`}
+                        alt={win.arabicName}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = `/assets/images/portal_${win.id}.jpg`;
+                        }}
+                        className="h-full w-full object-cover transition-transform group-hover:scale-110"
+                      />
                     </div>
 
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 shrink-0">
                       <PortalNeonBadge
                         windowId={win.id}
                         isActive={isActive}

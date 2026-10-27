@@ -177,7 +177,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col selection:bg-blue-600 selection:text-white" dir="rtl">
+    <div className="min-h-screen bg-slate-100 flex flex-col selection:bg-blue-600 selection:text-white w-full max-w-full overflow-x-hidden" dir="rtl">
       {/* 3D Master Header with Brand and Home Navigation */}
       <Navbar
         currentView={currentView}

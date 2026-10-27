@@ -112,7 +112,7 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
 
   return (
     <div className="w-full relative z-20">
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3 w-full">
         {/* Gemini API Key Management Button (Beside Search Box in place of old download button) */}
         {onOpenUserKeyManager && (
           <button
@@ -120,55 +120,55 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
             id="search-user-key-btn"
             onClick={onOpenUserKeyManager}
             title="إدارة مفتاح Google Gemini API الخاص بك"
-            className={`relative group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 h-10 sm:h-11 rounded-2xl border transition-all duration-150 shrink-0 cursor-pointer select-none active:translate-y-[2px] ${
+            className={`relative group flex items-center gap-1 sm:gap-2 px-2 sm:px-3.5 h-9 sm:h-11 rounded-xl sm:rounded-2xl border transition-all duration-150 shrink-0 cursor-pointer select-none active:translate-y-[2px] ${
               hasUserKey
                 ? 'bg-gradient-to-b from-amber-400 via-amber-500 to-yellow-600 border-amber-300 border-b-[3px] border-b-amber-800 text-slate-950 shadow-[0_4px_12px_rgba(245,158,11,0.4)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.6)] hover:brightness-105'
                 : 'bg-gradient-to-b from-slate-100 via-slate-200 to-slate-300 border-slate-300 border-b-[3px] border-b-slate-500 text-slate-800 shadow-[0_3px_8px_rgba(0,0,0,0.1)] hover:bg-white hover:brightness-105'
             }`}
           >
             {/* Subtle light sweep reflection */}
-            <span className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
+            <span className="absolute inset-0 rounded-xl sm:rounded-2xl overflow-hidden pointer-events-none">
               <span className="absolute -inset-full bg-gradient-to-r from-transparent via-white/25 to-transparent -rotate-45 group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
             </span>
 
-            <div className={`relative flex items-center justify-center w-6 h-6 rounded-lg ${hasUserKey ? 'bg-black/15' : 'bg-white/60'} shadow-inner group-hover:scale-110 transition-transform`}>
-              <Key className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${hasUserKey ? 'text-slate-950' : 'text-slate-700'} drop-shadow-xs`} />
+            <div className={`relative flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-lg ${hasUserKey ? 'bg-black/15' : 'bg-white/60'} shadow-inner group-hover:scale-110 transition-transform`}>
+              <Key className={`w-3 h-3 sm:w-4 sm:h-4 ${hasUserKey ? 'text-slate-950' : 'text-slate-700'} drop-shadow-xs`} />
             </div>
 
-            <div className="flex flex-col text-right leading-none">
-              <span className="text-[11px] sm:text-xs font-black drop-shadow-xs flex items-center gap-1">
-                <span>مفتاح Gemini</span>
-                <Sparkles className={`w-3 h-3 ${hasUserKey ? 'text-yellow-200' : 'text-amber-500'} animate-pulse hidden sm:inline`} />
+            <div className="hidden xs:flex flex-col text-right leading-none">
+              <span className="text-[10px] sm:text-xs font-black drop-shadow-xs flex items-center gap-1">
+                <span>Gemini</span>
+                <Sparkles className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${hasUserKey ? 'text-yellow-200' : 'text-amber-500'} animate-pulse hidden sm:inline`} />
               </span>
-              <span className={`text-[9px] font-bold hidden sm:inline pt-0.5 ${hasUserKey ? 'text-amber-950' : 'text-slate-500'}`}>
-                {hasUserKey ? 'مفتاحي مفعّل ✓' : 'إدارة المفتاح'}
+              <span className={`text-[8px] sm:text-[9px] font-bold hidden sm:inline pt-0.5 ${hasUserKey ? 'text-amber-950' : 'text-slate-500'}`}>
+                {hasUserKey ? 'مفعّل ✓' : 'المفتاح'}
               </span>
             </div>
 
             {/* Glowing active indicator dot */}
             {hasUserKey ? (
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+              <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5 sm:h-3 sm:w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border border-white"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 bg-emerald-500 border border-white"></span>
               </span>
             ) : (
-              <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5 rounded-full bg-amber-400 border border-white" />
+              <span className="absolute -top-1 -right-1 flex h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-amber-400 border border-white" />
             )}
           </button>
         )}
 
         {/* Main Search Input Form */}
-        <form onSubmit={handleSearch} className="relative flex-1">
+        <form onSubmit={handleSearch} className="relative flex-1 min-w-0">
           <div
-            className={`flex items-center gap-2 rounded-2xl bg-white border-2 transition-all duration-300 p-1.5 sm:p-2 ${
+            className={`flex items-center gap-1 sm:gap-2 rounded-xl sm:rounded-2xl bg-white border-2 transition-all duration-300 p-1 sm:p-2 ${
               isFocused
-                ? 'border-yellow-400 ring-4 ring-yellow-400/35 shadow-[0_0_24px_rgba(250,204,21,0.65)]'
+                ? 'border-yellow-400 ring-3 sm:ring-4 ring-yellow-400/35 shadow-[0_0_24px_rgba(250,204,21,0.65)]'
                 : 'border-yellow-400 sm:border-[2.5px] shadow-[0_0_15px_rgba(250,204,21,0.35)] hover:shadow-[0_0_20px_rgba(250,204,21,0.5)]'
             }`}
           >
             {/* Search Icon */}
-            <div className="flex items-center gap-1.5 pr-2 pl-1 text-slate-400">
-              <Search className="h-5 w-5 text-amber-500 animate-pulse" />
+            <div className="flex items-center pr-1.5 pl-0.5 text-slate-400 shrink-0">
+              <Search className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 animate-pulse" />
             </div>
 
             {/* Text Input for code, keyword, or Full URL */}
@@ -182,8 +182,8 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
               }}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setTimeout(() => setIsFocused(false), 250)}
-              placeholder="الصق رقم النافذة المنسوخ أو رابط الصفحة هنا للانتقال المباشر..."
-              className="flex-1 bg-transparent text-xs sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-hidden"
+              placeholder="الصق رقم النافذة أو الرابط للانتقال..."
+              className="flex-1 min-w-0 bg-transparent text-[11px] sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-hidden"
               dir="rtl"
             />
 
@@ -195,19 +195,19 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
                   setQuery('');
                   setErrorMsg('');
                 }}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-full transition-colors"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-full transition-colors shrink-0"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </button>
             )}
 
             {/* Unified Integrated 3D Neon Button: 'انتقل' with nested Neon Red '؟' Circle */}
-            <div className="relative flex items-center rounded-xl bg-gradient-to-b from-yellow-300 via-amber-400 to-yellow-500 border border-yellow-200 border-b-[3px] border-b-amber-600 shadow-[0_4px_12px_rgba(245,158,11,0.45),0_0_12px_rgba(250,204,21,0.4)] pl-1 pr-3 sm:pr-3.5 py-1 gap-2 shrink-0 transition-all duration-150 hover:brightness-105 active:translate-y-[2px] active:border-b-amber-500 active:shadow-xs">
+            <div className="relative flex items-center rounded-lg sm:rounded-xl bg-gradient-to-b from-yellow-300 via-amber-400 to-yellow-500 border border-yellow-200 border-b-[2.5px] sm:border-b-[3px] border-b-amber-600 shadow-[0_4px_12px_rgba(245,158,11,0.45)] pl-1 pr-2 sm:pr-3 py-0.5 sm:py-1 gap-1 sm:gap-2 shrink-0 transition-all duration-150 hover:brightness-105 active:translate-y-[1.5px] select-none">
               {/* Submit Action (انتقل) */}
               <button
                 type="submit"
                 id="smart-search-submit-btn"
-                className="text-slate-950 font-black text-xs sm:text-sm cursor-pointer select-none active:scale-95 transition-transform drop-shadow-xs tracking-tight"
+                className="text-slate-950 font-black text-[11px] sm:text-sm cursor-pointer active:scale-95 transition-transform drop-shadow-xs tracking-tight"
               >
                 انتقل
               </button>
@@ -222,7 +222,7 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
                   setIsHelpModalOpen(true);
                 }}
                 title="دليل البحث والاستدعاء البرمجي"
-                className="relative flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-gradient-to-tr from-red-600 via-red-500 to-rose-500 text-white font-black text-xs sm:text-sm shadow-[0_0_10px_rgba(239,68,68,0.7)] border-2 border-white/80 hover:scale-110 hover:shadow-[0_0_15px_rgba(239,68,68,0.9)] active:scale-90 transition-all duration-200 cursor-pointer overflow-hidden select-none animate-pulse hover:animate-none"
+                className="relative flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-gradient-to-tr from-red-600 via-red-500 to-rose-500 text-white font-black text-[10px] sm:text-xs shadow-[0_0_10px_rgba(239,68,68,0.7)] border border-white/80 hover:scale-110 active:scale-90 transition-all duration-200 cursor-pointer overflow-hidden select-none"
               >
                 <span className="relative z-10 leading-none font-black text-white drop-shadow-xs">؟</span>
                 <span className="absolute inset-0 bg-white/30 opacity-0 hover:opacity-100 transition-opacity" />
@@ -237,9 +237,9 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
           id="search-avatar-profile-btn"
           onClick={() => setIsProfileModalOpen(true)}
           title={isAuthenticated ? `الملف الشخصي: ${user?.displayName || user?.email}` : 'الملف الشخصي وتسجيل الدخول'}
-          className="relative group flex items-center justify-center rounded-2xl p-1 bg-white border-2 border-yellow-400 shadow-[0_4px_12px_rgba(250,204,21,0.35)] hover:shadow-[0_0_20px_rgba(250,204,21,0.6)] hover:scale-105 active:scale-95 transition-all duration-200 shrink-0 cursor-pointer"
+          className="relative group flex items-center justify-center rounded-xl sm:rounded-2xl p-0.5 sm:p-1 bg-white border-2 border-yellow-400 shadow-[0_4px_12px_rgba(250,204,21,0.35)] hover:shadow-[0_0_20px_rgba(250,204,21,0.6)] hover:scale-105 active:scale-95 transition-all duration-200 shrink-0 cursor-pointer"
         >
-          <div className="relative h-10 w-10 sm:h-11 sm:w-11 rounded-xl overflow-hidden bg-slate-900 border border-amber-300">
+          <div className="relative h-9 w-9 sm:h-11 sm:w-11 rounded-lg sm:rounded-xl overflow-hidden bg-slate-900 border border-amber-300">
             {user?.photoURL ? (
               <img
                 src={user.photoURL}
@@ -275,9 +275,9 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
 
       {/* Interactive 3D Dynamic Popup Modal Window for the '?' Button */}
       {isHelpModalOpen && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-200">
           <div
-            className="relative w-full max-w-md max-h-[calc(90vh-50px)] overflow-y-auto rounded-3xl border-2 border-yellow-400 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.35),0_0_30px_rgba(250,204,21,0.4)] animate-in zoom-in-95 duration-200 transform -translate-y-[50px] sm:-translate-y-[50px]"
+            className="relative w-full max-w-md max-h-[88vh] overflow-y-auto rounded-3xl border-2 border-yellow-400 bg-white shadow-2xl animate-in zoom-in-95 duration-200 my-auto"
             dir="rtl"
           >
             {/* Tri-color Top Accent Bar */}

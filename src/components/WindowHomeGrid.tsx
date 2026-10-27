@@ -158,6 +158,10 @@ export const WindowHomeGrid: React.FC<WindowHomeGridProps> = ({
               src={cardImage}
               alt={win.name}
               referrerPolicy="no-referrer"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = `/assets/images/portal_${win.id}.jpg`;
+              }}
               className="h-full w-full object-cover rounded-[12px] transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
@@ -238,6 +242,10 @@ export const WindowHomeGrid: React.FC<WindowHomeGridProps> = ({
                       src={cardImage}
                       alt={win.name}
                       referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = `/assets/images/portal_${win.id}.jpg`;
+                      }}
                       className="h-full w-full object-cover rounded-[12px] transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (

@@ -69,10 +69,10 @@ export const Portal3VideoStudio: React.FC = () => {
 
   // SAMPLE PRESET IMAGES FOR QUICK TESTING
   const SAMPLE_IMAGES = [
-    { title: 'مركبة شفق سينمائية', url: '/src/assets/images/portal_cinema_motion_1793071243125.jpg' },
-    { title: 'صقر صحراوي فوتوغرافي', url: '/src/assets/images/portal_falcon_photo_1793071241443.jpg' },
-    { title: 'ساموراي نيون ثلاثي الأبعاد', url: '/src/assets/images/portal_fantasy_samurai_1793071242263.jpg' },
-    { title: 'حديقة زن وطبيعة ضبابية', url: '/src/assets/images/portal_voice_zen_1793071244039.jpg' }
+    { title: 'مركبة شفق سينمائية', url: '/assets/images/portal_3_cinema.jpg' },
+    { title: 'صقر صحراوي فوتوغرافي', url: '/assets/images/portal_1_photo.jpg' },
+    { title: 'ساموراي نيون ثلاثي الأبعاد', url: '/assets/images/portal_2_fantasy.jpg' },
+    { title: 'حديقة زن وطبيعة ضبابية', url: '/assets/images/portal_4_voice.jpg' }
   ];
 
   const CAMERA_PRESETS = [

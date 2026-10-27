@@ -191,13 +191,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 {isSubscribed ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-emerald-950 stroke-[3]" />
-                    <span>مشترك ✓</span>
+                    <Check className="w-3 h-3 text-emerald-950 stroke-[3]" />
+                    <span className="text-[10px] sm:text-xs font-black tracking-tight">مشترك ✓</span>
                   </>
                 ) : (
                   <>
-                    <Bell className="w-3.5 h-3.5 text-amber-900 fill-amber-900 animate-bounce-subtle" />
-                    <span>اشتراك</span>
+                    <Bell className="w-3 h-3 text-amber-900 fill-amber-900 animate-bounce-subtle" />
+                    <span className="text-[10px] sm:text-xs font-black tracking-tight">اشتراك</span>
                   </>
                 )}
               </button>

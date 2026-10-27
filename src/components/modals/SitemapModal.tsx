@@ -120,7 +120,7 @@ export const SitemapModal: React.FC<SitemapModalProps> = ({ isOpen, onClose }) =
       className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/75 p-3 backdrop-blur-sm animate-in fade-in duration-150"
       dir="rtl"
     >
-      <div className="relative flex max-h-[calc(90vh-50px)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-2xl transform -translate-y-[50px] sm:-translate-y-[50px]">
+      <div className="relative flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-2xl my-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-6 py-4">
           <div className="flex items-center gap-3">

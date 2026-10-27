@@ -1220,7 +1220,7 @@ export const DevControlPanel: React.FC<DevControlPanelProps> = ({
         {/* MODAL: ADD / EDIT ITEM */}
         {isAddingItem && (
           <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm">
-            <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-slate-700 bg-slate-900 p-6 text-slate-100 shadow-2xl space-y-4 max-h-[calc(90vh-50px)] overflow-y-auto transform -translate-y-[50px] sm:-translate-y-[50px]">
+            <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-slate-700 bg-slate-900 p-6 text-slate-100 shadow-2xl space-y-4 max-h-[88vh] overflow-y-auto my-auto">
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h4 className="font-bold text-base text-white">
                   {editingItemId ? 'تعديل عنصر وبرومبت' : `إضافة عنصر جديد لبوابة ${activeTab}`}
@@ -1351,7 +1351,7 @@ export const DevControlPanel: React.FC<DevControlPanelProps> = ({
         {/* MODAL: ADD AD */}
         {isAddingAd && (
           <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm">
-            <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-slate-700 bg-slate-900 p-6 text-slate-100 shadow-2xl space-y-4 max-h-[calc(90vh-50px)] overflow-y-auto transform -translate-y-[50px] sm:-translate-y-[50px]">
+            <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-slate-700 bg-slate-900 p-6 text-slate-100 shadow-2xl space-y-4 max-h-[88vh] overflow-y-auto my-auto">
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h4 className="font-bold text-base text-white">إضافة راعي / إعلان مدمج 350×350</h4>
                 <button

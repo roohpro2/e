@@ -297,6 +297,10 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
                   src={item.url}
                   alt={item.title}
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = `/assets/images/portal_${item.windowId || 1}.jpg`;
+                  }}
                   className="h-full w-full object-cover rounded-lg"
                 />
               )}
@@ -601,6 +605,10 @@ export const ItemDetailPage: React.FC<ItemDetailPageProps> = ({
                 src={item.url}
                 alt={item.title}
                 referrerPolicy="no-referrer"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = `/assets/images/portal_${item.windowId || 1}.jpg`;
+                }}
                 className="h-full w-full object-cover rounded-[12px]"
               />
             )}

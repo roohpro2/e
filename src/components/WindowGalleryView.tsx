@@ -35,6 +35,7 @@ import { Portal3VideoStudio } from './portals/Portal3VideoStudio';
 import { Portal4VoicePages } from './portals/Portal4VoicePages';
 import { Portal5CommercialAds } from './portals/Portal5CommercialAds';
 import { Portal6VisionStudio } from './portals/Portal6VisionStudio';
+import { PortalDocumentationGuide } from './PortalDocumentationGuide';
 
 interface WindowGalleryViewProps {
   windowId: WindowId;
@@ -200,6 +201,10 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
             src={item.url}
             alt={item.title}
             referrerPolicy="no-referrer"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = `/assets/images/portal_${item.windowId || 1}.jpg`;
+            }}
             className="h-full w-full object-cover rounded-[12px] transition-transform duration-300 group-hover:scale-105"
           />
 
@@ -289,6 +294,10 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
                   src={currentWindow.coverImage}
                   alt={currentWindow.arabicName}
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = `/assets/images/portal_${currentWindow.id}.jpg`;
+                  }}
                   className="h-full w-full object-cover"
                 />
               </div>
@@ -321,13 +330,13 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-stretch sm:justify-end">
             <button
               type="button"
               onClick={() => setIsMutatorOpen(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white px-3.5 py-2 text-xs font-black shadow-md border border-yellow-400 active:scale-95 transition-all cursor-pointer"
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white px-3.5 py-2 text-xs font-black shadow-md border border-yellow-400 active:scale-95 transition-all cursor-pointer"
             >
-              <Zap className="w-4 h-4 text-yellow-300 animate-pulse" />
+              <Zap className="w-4 h-4 text-yellow-300 animate-pulse shrink-0" />
               <span>⚡ تنويع وتوسيع البرومبت (Mutator)</span>
             </button>
           </div>
@@ -338,6 +347,12 @@ export const WindowGalleryView: React.FC<WindowGalleryViewProps> = ({
       <Portal3DRibbon
         activeWindowId={windowId}
         onSelectWindow={onSelectWindow}
+      />
+
+      {/* DEDICATED COMPREHENSIVE PROFESSIONAL MANUAL & OPERATIONAL GUIDE (1500+ LINES DOCUMENTATION) */}
+      <PortalDocumentationGuide
+        windowId={windowId}
+        defaultExpanded={true}
       />
 
       {/* DEDICATED PORTAL INTERACTIVE WORKSPACE (Portals 1-6) */}

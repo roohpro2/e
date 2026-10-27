@@ -38,7 +38,7 @@ export const ImageVisionAnalyzer: React.FC<ImageVisionAnalyzerProps> = ({ onProm
       title: userCustomNote ? `تحليل: ${userCustomNote.slice(0, 30)}` : 'هندسة بصرية معكوسة',
       prompt: analysisResult.extractedPrompt,
       mediaType: 'reverse_vision',
-      url: selectedImage || '/src/assets/images/portal_vision_scanner_1793071244264.jpg',
+      url: selectedImage || '/assets/images/portal_6_vision.jpg',
       model: 'Gemini Vision 2.5 / Midjourney v6',
       tags: ['هندسة معكوسة', ...analysisResult.styleKeywords],
       folderName: 'هندسة معكوسة',
